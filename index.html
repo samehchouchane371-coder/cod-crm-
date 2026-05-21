@@ -1,1 +1,2390 @@
-file:///Users/sameh/Desktop/Claude/Projects/COD%20TRACKING/index.html
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>COD CRM — Pilotage e-commerce Cash On Delivery</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: {
+            950: '#08090b',
+            900: '#0b0c0f',
+            850: '#0f1115',
+            800: '#13151b',
+            750: '#191c23',
+            700: '#21242d',
+            600: '#2c3039',
+            500: '#3c414c',
+            400: '#5a6072',
+            300: '#8f95a6',
+            200: '#c7cbd6',
+            100: '#e8ebf2'
+          },
+          brand: {
+            500: '#7c5cff',
+            400: '#9c85ff',
+            600: '#5b3ff0'
+          },
+          mint: { 500: '#19d4a3', 600: '#0fbf90' },
+          amber: { 500: '#f5b14a' },
+          rose: { 500: '#ff5d7a' }
+        },
+        fontFamily: {
+          sans: ['Inter','ui-sans-serif','system-ui','-apple-system','Segoe UI','Roboto','sans-serif']
+        },
+        boxShadow: {
+          card: '0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 24px rgba(0,0,0,0.35)',
+          glow: '0 0 0 1px rgba(124,92,255,0.35), 0 0 30px rgba(124,92,255,0.25)'
+        }
+      }
+    }
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { background: #08090b; color: #e8ebf2; -webkit-font-smoothing: antialiased; }
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  /* subtle radial backdrop */
+  body::before {
+    content:''; position: fixed; inset:0; pointer-events:none; z-index:-1;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,0.10), transparent 60%),
+      radial-gradient(800px 500px at -10% 100%, rgba(25,212,163,0.06), transparent 60%);
+  }
+  /* scrollbar */
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb { background:#21242d; border-radius:10px; }
+  ::-webkit-scrollbar-thumb:hover { background:#2c3039; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  /* card */
+  .card { background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0)) , #0f1115; border:1px solid #191c23; border-radius:16px; }
+  .card-soft { background:#0f1115; border:1px solid #191c23; border-radius:14px; }
+  .kpi-card { background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0)) , #0f1115; border:1px solid #191c23; border-radius:18px; }
+  /* input */
+  .input, .select, textarea.input {
+    background:#0b0c0f; border:1px solid #21242d; color:#e8ebf2; border-radius:10px;
+    padding:10px 12px; width:100%; outline:none; transition:border-color .15s ease, box-shadow .15s ease;
+    font-size:14px;
+  }
+  .input:focus, .select:focus, textarea.input:focus { border-color:#7c5cff; box-shadow:0 0 0 4px rgba(124,92,255,0.15); }
+  .label { font-size:12px; color:#8f95a6; font-weight:500; display:block; margin-bottom:6px; letter-spacing:.01em; }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; font-weight:600; font-size:14px; transition:all .15s ease; border:1px solid transparent; cursor:pointer; }
+  .btn-primary { background:#7c5cff; color:white; }
+  .btn-primary:hover { background:#6a48ff; }
+  .btn-ghost { background:transparent; color:#c7cbd6; border-color:#21242d; }
+  .btn-ghost:hover { background:#13151b; color:#e8ebf2; }
+  .btn-danger { background:transparent; color:#ff5d7a; border-color:#3a2027; }
+  .btn-danger:hover { background:#1c0f13; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px; font-size:11.5px; font-weight:600; border:1px solid #21242d; background:#0b0c0f; color:#c7cbd6; }
+  .chip-mint { background:rgba(25,212,163,0.10); border-color:rgba(25,212,163,0.30); color:#5be3bb; }
+  .chip-amber { background:rgba(245,177,74,0.10); border-color:rgba(245,177,74,0.30); color:#f5c47a; }
+  .chip-rose { background:rgba(255,93,122,0.10); border-color:rgba(255,93,122,0.30); color:#ff859b; }
+  .chip-violet { background:rgba(124,92,255,0.10); border-color:rgba(124,92,255,0.30); color:#b6a3ff; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; color:#8f95a6; font-size:14px; font-weight:500; cursor:pointer; transition:all .12s ease; }
+  .nav-item:hover { color:#e8ebf2; background:#13151b; }
+  .nav-item.active { color:#e8ebf2; background:#13151b; box-shadow:inset 2px 0 0 #7c5cff; }
+  .nav-item .ic { width:18px; height:18px; flex-shrink:0; }
+  .divider { border-top:1px solid #191c23; }
+  .stat-up { color:#5be3bb; }
+  .stat-down { color:#ff859b; }
+  .table th { font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:#8f95a6; font-weight:600; text-align:left; padding:10px 12px; border-bottom:1px solid #191c23; background:#0b0c0f; position:sticky; top:0; }
+  .table td { padding:12px; border-bottom:1px solid #13151b; font-size:14px; color:#c7cbd6; }
+  .table tr:hover td { background:#0d0e12; }
+  .modal-backdrop { position:fixed; inset:0; background:rgba(3,3,5,0.6); backdrop-filter: blur(6px); z-index:60; }
+  .modal { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(640px, calc(100vw - 32px)); max-height:calc(100vh - 48px); overflow:auto; background:#0f1115; border:1px solid #21242d; border-radius:18px; z-index:70; }
+  .toast { position:fixed; bottom:20px; right:20px; z-index:80; background:#13151b; border:1px solid #21242d; padding:12px 14px; border-radius:12px; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,.4); animation: slideIn .25s ease; }
+  @keyframes slideIn { from { transform: translateY(8px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  details > summary { list-style:none; cursor:pointer; }
+  details > summary::-webkit-details-marker { display:none; }
+  .gradient-text { background:linear-gradient(90deg,#9c85ff,#19d4a3); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  /* ---- Layout SANS dépendance Tailwind (critique pour Safari file://) ---- */
+  /* Desktop : sidebar fixe à gauche + main qui remplit le reste */
+  @media (min-width: 1024px) {
+    body { display: flex; align-items: stretch; min-height: 100vh; }
+    .sidebar { position: sticky !important; top: 0; left: 0; width: 260px; flex-shrink: 0; height: 100vh; transform: none !important; }
+    main { flex: 1; min-width: 0; }
+    .sidebar-overlay { display: none !important; }
+  }
+  /* Mobile : sidebar en drawer */
+  @media (max-width: 1023px) {
+    .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 260px; transform: translateX(-100%); transition: transform .22s ease; z-index: 40; }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 30; }
+    .sidebar-overlay.open { display: block; }
+    main { width: 100%; }
+  }
+  .progress { height:6px; background:#13151b; border-radius:999px; overflow:hidden; }
+  .progress > span { display:block; height:100%; background:linear-gradient(90deg,#7c5cff,#19d4a3); }
+  .pill-tab { padding:7px 12px; border-radius:9px; font-size:13px; font-weight:600; color:#8f95a6; cursor:pointer; background:transparent; border:none; }
+  .pill-tab.active { background:#13151b; color:#e8ebf2; }
+  /* Fallback for main content area (in case Tailwind doesn't load) */
+  #view { padding:20px; max-width:1400px; margin:0 auto; width:100%; min-height:200px; box-sizing:border-box; }
+  @media (min-width: 640px) { #view { padding:28px; } }
+  header { background:rgba(8,9,11,0.7); border-bottom:1px solid #191c23; position:sticky; top:0; z-index:20; }
+  header .h-14 { height:56px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  @media (min-width: 640px) { header .h-14 { padding:0 24px; } }
+  footer { padding:14px 24px; font-size:11.5px; color:#5a6072; border-top:1px solid #191c23; }
+  /* Visibility helpers */
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar overlay (mobile) - styling handled by custom CSS, not Tailwind -->
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="sidebar fixed lg:sticky top-0 left-0 h-screen w-[260px] bg-ink-900 border-r border-ink-800 z-40 flex flex-col">
+  <div class="px-5 pt-5 pb-4">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center shadow-glow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4"/><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/></svg>
+      </div>
+      <div>
+        <div class="font-bold text-[15px] leading-tight">COD CRM</div>
+        <div class="text-[11px] text-ink-300 leading-tight">Pilotage e-commerce</div>
+      </div>
+    </div>
+  </div>
+  <nav class="px-3 flex-1 overflow-y-auto">
+    <div class="text-[10.5px] uppercase tracking-wider text-ink-400 font-bold px-3 mt-2 mb-2">Pilotage</div>
+    <a class="nav-item" data-route="/">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      Dashboard global
+    </a>
+    <a class="nav-item" data-route="/products">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
+      Produits
+    </a>
+    <a class="nav-item" data-route="/orders">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Commandes
+    </a>
+    <a class="nav-item" data-route="/ads">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 13"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+      Publicité
+    </a>
+    <a class="nav-item" data-route="/countries">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      Pays de vente
+    </a>
+    <div class="text-[10.5px] uppercase tracking-wider text-ink-400 font-bold px-3 mt-5 mb-2">Analytique</div>
+    <a class="nav-item" data-route="/profit">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      CA & Bénéfice
+    </a>
+    <a class="nav-item" data-route="/history">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
+      Historique & courbes
+    </a>
+    <a class="nav-item" data-route="/settings">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      Paramètres
+    </a>
+  </nav>
+  <div class="p-3 border-t border-ink-800">
+    <div id="alert-badge" class="hidden card-soft p-3 mb-2">
+      <div class="flex items-center gap-2 text-amber-500 text-sm font-semibold">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span id="alert-count">0 alertes</span>
+      </div>
+      <div id="alert-list" class="text-[12px] text-ink-300 mt-1"></div>
+    </div>
+    <div class="text-[11px] text-ink-400 px-2">v1.0 · stockage local</div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="lg:ml-0 min-h-screen flex flex-col">
+  <!-- Topbar -->
+  <header class="sticky top-0 z-20 backdrop-blur bg-ink-950/70 border-b border-ink-800">
+    <div class="px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <button class="lg:hidden p-2 -ml-2 rounded-lg hover:bg-ink-800" onclick="toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div id="page-title" class="font-semibold text-[15px]">Dashboard global</div>
+          <div id="page-subtitle" class="text-[12px] text-ink-300"></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="cloud-status"></span>
+        <span id="today-chip" class="chip"></span>
+        <button class="btn btn-ghost hidden sm:inline-flex" onclick="exportCSV()" title="Export CSV">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="view" class="px-4 sm:px-6 py-5 sm:py-7 max-w-[1400px] mx-auto w-full flex-1"></div>
+
+  <footer class="px-6 py-4 text-[11.5px] text-ink-400 border-t border-ink-800">
+    COD CRM · données stockées localement dans votre navigateur · aucune transmission externe.
+  </footer>
+</main>
+
+<!-- Toast container -->
+<div id="toast-zone"></div>
+<!-- Modal mount -->
+<div id="modal-mount"></div>
+
+<script>
+/* =========================================================
+   COD CRM — Application logic (vanilla JS, single file)
+   ========================================================= */
+
+/* ---------- State ---------- */
+const STORAGE_KEY = 'codcrm:v1';
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const today = () => new Date().toISOString().slice(0,10);
+const fmtNum = (n, d=0) => (isFinite(n)?n:0).toLocaleString('fr-FR', { maximumFractionDigits:d, minimumFractionDigits:d });
+const fmtMoney = (n, c='EUR') => {
+  if (!isFinite(n)) n = 0;
+  try { return n.toLocaleString('fr-FR', { style:'currency', currency:c, maximumFractionDigits:2 }); }
+  catch { return fmtNum(n,2) + ' ' + c; }
+};
+const pct = (n, d=1) => (isFinite(n)?n:0).toLocaleString('fr-FR', { maximumFractionDigits:d, minimumFractionDigits:d }) + '%';
+
+const DEFAULT_STATE = () => ({
+  version: 1,
+  settings: {
+    operatingCurrency: 'EUR',
+    rates: { EUR: 1, USD: 0.92 },        // rate => EUR multiplier
+    codFeePercent: 5,
+    platformFeePercent: 2,
+    logisticsFeePerOrder: 0,
+    lowStockThreshold: 20,
+    roasTarget: 2
+  },
+  products: [],
+  orders: [],
+  ads: [],
+  countries: []
+});
+
+// Storage abstraction with in-memory fallback (Safari private mode safe)
+const _memStore = {};
+let _storageWarned = false;
+const safeStorage = {
+  available: (() => { try { const k='__cod_test__'; localStorage.setItem(k,'1'); localStorage.removeItem(k); return true; } catch(e) { return false; } })(),
+  get(k) {
+    try { return localStorage.getItem(k); } catch(e) { return _memStore[k] ?? null; }
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); return true; }
+    catch(e) {
+      _memStore[k] = v;
+      if (!_storageWarned) {
+        _storageWarned = true;
+        setTimeout(() => toast('Stockage local indisponible (Safari privé ?). Données conservées en mémoire pour cette session.', 'danger'), 100);
+      }
+      return false;
+    }
+  }
+};
+
+let state = loadState();
+function loadState() {
+  try {
+    const raw = safeStorage.get(STORAGE_KEY);
+    if (!raw) return DEFAULT_STATE();
+    const s = JSON.parse(raw);
+    if (!s.version) return { ...DEFAULT_STATE(), ...s };
+    return { ...DEFAULT_STATE(), ...s, settings: { ...DEFAULT_STATE().settings, ...(s.settings||{}) } };
+  } catch (e) { return DEFAULT_STATE(); }
+}
+function saveState() {
+  try { safeStorage.set(STORAGE_KEY, JSON.stringify(state)); } catch(e) { console.warn('saveState error', e); }
+  try { refreshAlerts(); } catch(e) {}
+  try { saveToCloud(); } catch(e) {}
+}
+
+/* ---------- Cloud sync (Supabase) ---------- */
+const CLOUD_CFG_KEY = 'codcrm:cloudcfg';
+let cloud = {
+  client: null,
+  user: null,
+  lastSync: null,
+  syncInProgress: false,
+  config: { url:'', anonKey:'' }
+};
+
+function loadCloudConfig() {
+  try { const raw = safeStorage.get(CLOUD_CFG_KEY); if (raw) cloud.config = { ...cloud.config, ...JSON.parse(raw) }; } catch(e){}
+}
+function saveCloudConfig() {
+  try { safeStorage.set(CLOUD_CFG_KEY, JSON.stringify(cloud.config)); } catch(e){}
+}
+
+function initCloud() {
+  loadCloudConfig();
+  if (!cloud.config.url || !cloud.config.anonKey) { updateCloudUI(); return; }
+  if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+    console.warn('[CRM] Supabase SDK indisponible'); updateCloudUI(); return;
+  }
+  try {
+    cloud.client = window.supabase.createClient(cloud.config.url, cloud.config.anonKey, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
+    cloud.client.auth.getSession().then(({ data }) => {
+      cloud.user = data?.session?.user || null;
+      updateCloudUI();
+      if (cloud.user) loadFromCloud();
+    });
+    cloud.client.auth.onAuthStateChange((_evt, session) => {
+      cloud.user = session?.user || null;
+      updateCloudUI();
+      if (cloud.user) loadFromCloud();
+    });
+  } catch(e) { console.error('[CRM] Supabase init failed', e); }
+}
+
+async function cloudSignUp(email, password) {
+  if (!cloud.client) return { error: 'Cloud non configuré' };
+  const { data, error } = await cloud.client.auth.signUp({ email, password });
+  if (error) return { error: error.message };
+  return { user: data.user };
+}
+async function cloudSignIn(email, password) {
+  if (!cloud.client) return { error: 'Cloud non configuré' };
+  const { data, error } = await cloud.client.auth.signInWithPassword({ email, password });
+  if (error) return { error: error.message };
+  return { user: data.user };
+}
+async function cloudSignOut() {
+  if (!cloud.client) return;
+  await cloud.client.auth.signOut();
+  cloud.user = null; updateCloudUI();
+}
+async function loadFromCloud() {
+  if (!cloud.client || !cloud.user) return;
+  cloud.syncInProgress = true; updateCloudUI();
+  try {
+    const { data, error } = await cloud.client.from('user_data').select('state, updated_at').eq('user_id', cloud.user.id).maybeSingle();
+    if (error && error.code !== 'PGRST116') { console.warn('cloud load', error); toast('Erreur sync: ' + error.message, 'danger'); }
+    if (data && data.state) {
+      state = { ...DEFAULT_STATE(), ...data.state, settings: { ...DEFAULT_STATE().settings, ...(data.state.settings||{}) } };
+      cloud.lastSync = data.updated_at;
+      try { safeStorage.set(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+      refreshAlerts();
+      render();
+      toast('Données chargées du cloud', 'success');
+    } else {
+      // No cloud data yet → push current local state up
+      await pushToCloud(true);
+    }
+  } catch(e){ console.error('loadFromCloud', e); }
+  finally { cloud.syncInProgress = false; updateCloudUI(); }
+}
+
+let _cloudPushTimer = null;
+function saveToCloud() {
+  if (!cloud.client || !cloud.user) return;
+  clearTimeout(_cloudPushTimer);
+  _cloudPushTimer = setTimeout(() => pushToCloud(false), 1500);
+}
+async function pushToCloud(silent=false) {
+  if (!cloud.client || !cloud.user) return;
+  cloud.syncInProgress = true; updateCloudUI();
+  try {
+    const { error } = await cloud.client.from('user_data').upsert({
+      user_id: cloud.user.id,
+      state: state,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    if (error) { console.error('cloud push', error); if (!silent) toast('Erreur sync: ' + error.message, 'danger'); }
+    else { cloud.lastSync = new Date().toISOString(); if (!silent) toast('Synchronisé', 'success'); }
+  } catch(e){ console.error('pushToCloud', e); }
+  finally { cloud.syncInProgress = false; updateCloudUI(); }
+}
+
+function updateCloudUI() {
+  const el = document.getElementById('cloud-status'); if (!el) return;
+  let html = '';
+  if (!cloud.config.url || !cloud.config.anonKey) {
+    html = '<span class="chip" title="Cloud non configuré · va dans Paramètres" style="cursor:pointer" onclick="navigate(\'/settings\')">☁ Local</span>';
+  } else if (!cloud.client) {
+    html = '<span class="chip chip-amber">☁ Init…</span>';
+  } else if (!cloud.user) {
+    html = '<span class="chip chip-amber" style="cursor:pointer" onclick="navigate(\'/settings\')">☁ Non connecté</span>';
+  } else if (cloud.syncInProgress) {
+    html = '<span class="chip chip-violet">⟳ Sync…</span>';
+  } else {
+    const ago = cloud.lastSync ? ' · ' + new Date(cloud.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
+    html = '<span class="chip chip-mint" title="Synchronisé · ' + cloud.user.email + '">☁ Sync' + ago + '</span>';
+  }
+  el.innerHTML = html;
+}
+
+/* ---------- Helpers / Business logic ---------- */
+function operatingCurrency() { return state.settings.operatingCurrency || 'EUR'; }
+function rate(code) { return state.settings.rates?.[code] ?? 1; }
+function toOperating(amount, fromCurrency) {
+  if (!fromCurrency || fromCurrency === operatingCurrency()) return amount;
+  // value-in-fromCurrency * rate(from) => EUR-equivalent, then divide by rate(operating)
+  const eur = amount * (state.settings.rates?.[fromCurrency] ?? 1);
+  return eur / (state.settings.rates?.[operatingCurrency()] ?? 1);
+}
+function unitsPerOrder(p) {
+  if (p.offerType === 'standard') return 1;
+  if (p.offerType === '1+1') return 2;
+  if (p.offerType === '2+1') return 3;
+  if (p.offerType === 'custom') return (Number(p.customBuy)||1) + (Number(p.customGet)||0);
+  return 1;
+}
+function realUnitCost(p) {
+  // (supplierCost + supplierShipping) converted to operating currency
+  const raw = (Number(p.supplierCost)||0) + (Number(p.supplierShipping)||0);
+  return toOperating(raw, p.supplierCurrency || operatingCurrency());
+}
+function consumedTotal(productId) {
+  const p = state.products.find(x => x.id === productId); if (!p) return 0;
+  const upo = unitsPerOrder(p);
+  return state.orders.filter(o => o.productId === productId && o.status === 'delivered')
+                     .reduce((s,o)=> s + upo * (Number(o.quantity)||1), 0);
+}
+function consumedOnDate(productId, dateStr) {
+  const p = state.products.find(x => x.id === productId); if (!p) return 0;
+  const upo = unitsPerOrder(p);
+  return state.orders.filter(o => o.productId === productId && o.status === 'delivered' && o.date === dateStr)
+                     .reduce((s,o)=> s + upo * (Number(o.quantity)||1), 0);
+}
+function currentStock(p) {
+  return (Number(p.initialStock)||0) - consumedTotal(p.id);
+}
+function ordersOf(productId, dateStr) {
+  return state.orders.filter(o => o.productId === productId && (!dateStr || o.date === dateStr));
+}
+function adsOf(productId, dateStr) {
+  return state.ads.filter(a => a.productId === productId && (!dateStr || a.date === dateStr));
+}
+function countryOf(id) { return state.countries.find(c => c.id === id); }
+function productOf(id) { return state.products.find(p => p.id === id); }
+
+function profitOnDate(productId, dateStr) {
+  const p = productOf(productId); if (!p) return null;
+  const upo = unitsPerOrder(p);
+  const ruc = realUnitCost(p);
+  const cod = (state.settings.codFeePercent||0)/100;
+  const plat = (state.settings.platformFeePercent||0)/100;
+  const logis = Number(state.settings.logisticsFeePerOrder||0);
+
+  const dayOrders = ordersOf(productId, dateStr);
+  const delivered = dayOrders.filter(o => o.status === 'delivered');
+  const revenue = delivered.reduce((s,o)=> s + (Number(o.quantity)||1) * (Number(p.sellPrice)||0), 0);
+  const productCost = delivered.reduce((s,o)=> s + upo * (Number(o.quantity)||1) * ruc, 0);
+  const shippingCost = delivered.reduce((s,o)=> {
+    const c = countryOf(o.countryId); return s + (Number(o.quantity)||1) * (Number(c?.localShippingCost)||0);
+  }, 0);
+  const adSpend = adsOf(productId, dateStr).reduce((s,a)=> s + (Number(a.budget)||0), 0);
+  const codFees = revenue * cod;
+  const platformFees = revenue * plat;
+  const logisticsFees = delivered.reduce((s,o)=> s + (Number(o.quantity)||1) * logis, 0);
+
+  const netProfit = revenue - productCost - shippingCost - adSpend - codFees - platformFees - logisticsFees;
+  const margin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+  return { revenue, productCost, shippingCost, adSpend, codFees, platformFees, logisticsFees, netProfit, margin, delivered: delivered.length, totalOrders: dayOrders.length };
+}
+
+function minOrdersToBreakEven(p, adBudget, country) {
+  if (!p) return Infinity;
+  const upo = unitsPerOrder(p);
+  const ruc = realUnitCost(p);
+  const sp = Number(p.sellPrice)||0;
+  const feeRate = ((state.settings.codFeePercent||0) + (state.settings.platformFeePercent||0))/100;
+  const ship = Number(country?.localShippingCost) || 0;
+  const logis = Number(state.settings.logisticsFeePerOrder||0);
+  const contribution = sp * (1 - feeRate) - upo * ruc - ship - logis;
+  if (contribution <= 0) return Infinity;
+  return Math.ceil((Number(adBudget)||0) / contribution);
+}
+
+function roasFor(productId, dateStr) {
+  const ad = adsOf(productId, dateStr).reduce((s,a)=> s + (Number(a.budget)||0), 0);
+  const p = productOf(productId);
+  const delivered = ordersOf(productId, dateStr).filter(o => o.status === 'delivered');
+  const revenue = delivered.reduce((s,o)=> s + (Number(o.quantity)||1) * (Number(p?.sellPrice)||0), 0);
+  return ad > 0 ? revenue/ad : 0;
+}
+
+/* ---------- Période courante (sélecteur Jour/Semaine/Mois/Année) ---------- */
+let currentPeriod = { type: 'day', refDate: today() };
+
+function periodRange(p = currentPeriod) {
+  const ref = new Date(p.refDate + 'T00:00:00');
+  if (p.type === 'day') {
+    const d = p.refDate; return { start:d, end:d };
+  }
+  if (p.type === 'week') {
+    const day = ref.getDay() === 0 ? 7 : ref.getDay(); // 1..7 Mon..Sun
+    const start = new Date(ref); start.setDate(ref.getDate() - (day - 1));
+    const end = new Date(start); end.setDate(start.getDate() + 6);
+    return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+  }
+  if (p.type === 'month') {
+    const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+    const end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
+    return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+  }
+  if (p.type === 'year') {
+    return { start: ref.getFullYear()+'-01-01', end: ref.getFullYear()+'-12-31' };
+  }
+  return { start: p.refDate, end: p.refDate };
+}
+
+function periodLabel(p = currentPeriod) {
+  const r = periodRange(p);
+  const fmt = (d, opts) => new Date(d+'T00:00:00').toLocaleDateString('fr-FR', opts);
+  if (p.type === 'day') return fmt(p.refDate, { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  if (p.type === 'week') return `Semaine ${fmt(r.start, {day:'2-digit',month:'short'})} → ${fmt(r.end, {day:'2-digit',month:'short',year:'numeric'})}`;
+  if (p.type === 'month') return fmt(r.start, { month:'long', year:'numeric' });
+  if (p.type === 'year') return String(new Date(p.refDate).getFullYear());
+  return '';
+}
+
+function periodShort(p = currentPeriod) {
+  if (p.type === 'day') return 'du jour';
+  if (p.type === 'week') return 'de la semaine';
+  if (p.type === 'month') return 'du mois';
+  if (p.type === 'year') return "de l'année";
+  return '';
+}
+
+function datesInRange(start, end) {
+  const out = []; const d = new Date(start+'T00:00:00'); const e = new Date(end+'T00:00:00');
+  while (d <= e) { out.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
+  return out;
+}
+
+function ordersInRange(productId, start, end) {
+  return state.orders.filter(o => (!productId || o.productId === productId) && o.date >= start && o.date <= end);
+}
+function adsInRange(productId, start, end) {
+  return state.ads.filter(a => (!productId || a.productId === productId) && a.date >= start && a.date <= end);
+}
+function consumedInRange(productId, start, end) {
+  return datesInRange(start, end).reduce((s,d) => s + consumedOnDate(productId, d), 0);
+}
+function profitInRange(productId, start, end) {
+  return datesInRange(start, end).reduce((acc, d) => {
+    const r = profitOnDate(productId, d);
+    Object.keys(r).forEach(k => {
+      if (k !== 'margin') acc[k] = (acc[k]||0) + (r[k]||0);
+    });
+    return acc;
+  }, { revenue:0, productCost:0, shippingCost:0, adSpend:0, codFees:0, platformFees:0, logisticsFees:0, netProfit:0, delivered:0, totalOrders:0, margin:0 });
+}
+function roasInRange(productId, start, end) {
+  const ad = adsInRange(productId, start, end).reduce((s,a)=> s + (Number(a.budget)||0), 0);
+  const p = productOf(productId);
+  const delivered = ordersInRange(productId, start, end).filter(o => o.status === 'delivered');
+  const revenue = delivered.reduce((s,o)=> s + (Number(o.quantity)||1) * (Number(p?.sellPrice)||0), 0);
+  return ad > 0 ? revenue/ad : 0;
+}
+
+// Shift current period by +1 / -1 unit and re-render
+function shiftPeriod(delta) {
+  const d = new Date(currentPeriod.refDate + 'T00:00:00');
+  if (currentPeriod.type === 'day') d.setDate(d.getDate() + delta);
+  else if (currentPeriod.type === 'week') d.setDate(d.getDate() + 7*delta);
+  else if (currentPeriod.type === 'month') d.setMonth(d.getMonth() + delta);
+  else if (currentPeriod.type === 'year') d.setFullYear(d.getFullYear() + delta);
+  currentPeriod.refDate = d.toISOString().slice(0,10);
+  render();
+}
+function setPeriodType(t) { currentPeriod.type = t; render(); }
+function setPeriodDate(d) { currentPeriod.refDate = d || today(); render(); }
+function resetPeriodToday() { currentPeriod = { type:'day', refDate: today() }; render(); }
+
+/* ---------- Router ---------- */
+const routes = {};
+function on(path, handler) { routes[path] = handler; }
+function navigate(path) {
+  if (location.hash !== '#' + path) location.hash = '#' + path;
+  else render();
+}
+window.addEventListener('hashchange', render);
+
+function matchRoute() {
+  const hash = location.hash.replace(/^#/, '') || '/';
+  // exact
+  if (routes[hash]) return { handler: routes[hash], params: {} };
+  // parametric: '/products/:id'
+  for (const key of Object.keys(routes)) {
+    const parts = key.split('/'), got = hash.split('/');
+    if (parts.length !== got.length) continue;
+    const params = {}; let ok = true;
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i].startsWith(':')) params[parts[i].slice(1)] = decodeURIComponent(got[i]);
+      else if (parts[i] !== got[i]) { ok = false; break; }
+    }
+    if (ok) return { handler: routes[key], params };
+  }
+  return { handler: routes['/'], params: {} };
+}
+
+function render() {
+  try { toggleSidebar(false); } catch(e){}
+  const { handler, params } = matchRoute();
+  // update nav active
+  try {
+    document.querySelectorAll('[data-route]').forEach(a => {
+      const r = a.getAttribute('data-route');
+      const h = location.hash.replace(/^#/,'') || '/';
+      a.classList.toggle('active', h === r || (r !== '/' && h.startsWith(r)));
+      a.onclick = (e) => { e.preventDefault(); navigate(r); };
+    });
+  } catch(e){ console.error('nav update', e); }
+  // today
+  try {
+    document.getElementById('today-chip').innerHTML = (() => {
+      const d = new Date(); return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${d.toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short' })}`;
+    })();
+  } catch(e){}
+  const view = document.getElementById('view');
+  view.innerHTML = '';
+  try {
+    handler(params);
+  } catch(e) {
+    console.error('[CRM] route handler error', e);
+    view.innerHTML = '<div class="card" style="padding:24px; margin:16px; border:1px solid #3a2027; background:#1c0f13"><div style="font-weight:700; color:#ff859b; margin-bottom:8px">⚠ Erreur de rendu</div><div style="color:#c7cbd6; font-size:14px; margin-bottom:8px">'+e.message+'</div><pre style="font-size:11px; color:#8f95a6; overflow:auto; white-space:pre-wrap; max-height:200px">'+(e.stack||'')+'</pre><button class="btn btn-primary" style="margin-top:12px" onclick="navigate(\'/\')">Retour dashboard</button></div>';
+  }
+  try { refreshAlerts(); } catch(e){}
+  try { window.scrollTo(0, 0); } catch(e){}
+}
+
+/* ---------- Alerts ---------- */
+function computeAlerts() {
+  const alerts = [];
+  const thr = Number(state.settings.lowStockThreshold||0);
+  for (const p of state.products) {
+    const stock = currentStock(p);
+    if (stock <= thr) alerts.push({ level:'warn', msg: `Stock faible: ${p.name} (${stock})`, link:`/products/${p.id}` });
+    const r = roasFor(p.id, today());
+    if (adsOf(p.id, today()).length > 0 && r > 0 && r < (state.settings.roasTarget||2)) {
+      alerts.push({ level:'warn', msg: `ROAS bas: ${p.name} (${r.toFixed(2)})`, link:`/products/${p.id}` });
+    }
+    const pr = profitOnDate(p.id, today());
+    if (adsOf(p.id, today()).length > 0 && pr && pr.netProfit < 0) {
+      alerts.push({ level:'danger', msg: `Non rentable aujourd'hui: ${p.name}`, link:`/products/${p.id}` });
+    }
+  }
+  return alerts;
+}
+function refreshAlerts() {
+  const a = computeAlerts();
+  const box = document.getElementById('alert-badge');
+  const list = document.getElementById('alert-list');
+  const count = document.getElementById('alert-count');
+  if (a.length === 0) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  count.textContent = `${a.length} alerte${a.length>1?'s':''} active${a.length>1?'s':''}`;
+  list.innerHTML = a.slice(0,3).map(x => `<div class="truncate cursor-pointer hover:text-ink-100" onclick="navigate('${x.link}')">• ${x.msg}</div>`).join('');
+}
+
+/* ---------- UI helpers ---------- */
+function setTitle(t, sub='') {
+  document.getElementById('page-title').textContent = t;
+  document.getElementById('page-subtitle').textContent = sub;
+}
+
+function periodSelectorHTML() {
+  return `<div class="card mb-4" style="padding:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:4px;">
+      <button class="btn btn-ghost" style="padding:6px 10px;" onclick="shiftPeriod(-1)" title="Période précédente">‹</button>
+      <button class="btn btn-ghost" style="padding:6px 12px;" onclick="resetPeriodToday()" title="Revenir à aujourd'hui">Aujourd'hui</button>
+      <button class="btn btn-ghost" style="padding:6px 10px;" onclick="shiftPeriod(1)" title="Période suivante">›</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:2px; background:#13151b; padding:3px; border-radius:9px;">
+      ${[['day','Jour'],['week','Semaine'],['month','Mois'],['year','Année']].map(([t,l]) =>
+        `<button class="pill-tab ${currentPeriod.type===t?'active':''}" onclick="setPeriodType('${t}')">${l}</button>`).join('')}
+    </div>
+    <input type="date" class="input" style="max-width:170px;color-scheme:dark;" value="${currentPeriod.refDate}" onchange="setPeriodDate(this.value)">
+    <span class="chip chip-violet" style="margin-left:auto;">📅 ${periodLabel()}</span>
+  </div>`;
+}
+function toast(msg, kind='info') {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="${kind==='danger'?'text-rose-500':kind==='success'?'text-mint-500':'text-ink-100'}">●</span> <span>${msg}</span>`;
+  document.getElementById('toast-zone').appendChild(el);
+  setTimeout(()=> el.remove(), 2400);
+}
+// Render form as an inline panel at top of the view (Safari-safe, no modal backdrop)
+function modal(title, bodyHtml, opts={}) {
+  closeModal();
+  const view = document.getElementById('view');
+  if (!view) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'inline-form';
+  wrap.className = 'card mb-4 overflow-hidden';
+  wrap.style.scrollMarginTop = '70px';
+  wrap.innerHTML = `
+    <div class="px-5 py-3 border-b border-ink-800 flex items-center justify-between bg-ink-850">
+      <div class="font-semibold flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+        ${title}
+      </div>
+      <button type="button" class="btn btn-ghost py-1 px-3 text-[12px]" onclick="closeModal()">
+        ✕ Fermer
+      </button>
+    </div>
+    <div class="p-5">${bodyHtml}</div>
+    ${opts.footer ? `<div class="px-5 py-4 border-t border-ink-800 flex flex-wrap justify-end gap-2 bg-ink-850/40">${opts.footer}</div>` : ''}`;
+  view.insertBefore(wrap, view.firstChild);
+  // Smooth scroll and focus first usable input
+  setTimeout(() => {
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const first = wrap.querySelector('input:not([type="hidden"]):not([type="file"]):not([type="color"]), select, textarea');
+      if (first) first.focus({ preventScroll: true });
+    } catch(e){}
+  }, 80);
+}
+function closeModal() {
+  const ex = document.getElementById('inline-form'); if (ex) ex.remove();
+  const mm = document.getElementById('modal-mount'); if (mm) mm.innerHTML = '';
+}
+function toggleSidebar(force) {
+  const s = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const open = typeof force === 'boolean' ? force : !s.classList.contains('open');
+  s.classList.toggle('open', open);
+  ov.classList.toggle('open', open);
+}
+
+function emptyState({ icon, title, hint, ctaLabel, onCta }) {
+  const id = uid();
+  setTimeout(() => {
+    const el = document.getElementById('cta-' + id);
+    if (el && onCta) el.onclick = onCta;
+  }, 0);
+  return `<div class="card p-10 text-center">
+    <div class="mx-auto w-12 h-12 rounded-xl bg-ink-800 flex items-center justify-center text-ink-300 mb-3">${icon}</div>
+    <div class="font-semibold text-ink-100">${title}</div>
+    <div class="text-ink-300 text-sm mt-1 max-w-md mx-auto">${hint}</div>
+    ${ctaLabel ? `<button id="cta-${id}" class="btn btn-primary mt-4">${ctaLabel}</button>` : ''}
+  </div>`;
+}
+
+function kpi({ label, value, sub='', trend='', icon='', tone='' }) {
+  const trendCls = trend.startsWith('-') ? 'stat-down' : trend ? 'stat-up' : '';
+  return `<div class="kpi-card p-4 sm:p-5">
+    <div class="flex items-start justify-between gap-2">
+      <div class="text-[12px] text-ink-300 font-medium">${label}</div>
+      <div class="${tone==='violet'?'text-brand-500':tone==='mint'?'text-mint-500':tone==='amber'?'text-amber-500':tone==='rose'?'text-rose-500':'text-ink-300'}">${icon||''}</div>
+    </div>
+    <div class="mt-2 text-2xl sm:text-[28px] font-bold tracking-tight">${value}</div>
+    <div class="flex items-center gap-2 mt-1 text-[12px]">
+      ${trend ? `<span class="${trendCls} font-semibold">${trend}</span>` : ''}
+      ${sub ? `<span class="text-ink-300">${sub}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+/* ---------- Views ---------- */
+
+/* === Dashboard global === */
+on('/', () => {
+  setTitle('Dashboard global', 'Vue consolidée · ' + periodLabel());
+  const range = periodRange();
+  const totals = state.products.reduce((acc, p) => {
+    const pr = profitInRange(p.id, range.start, range.end);
+    const all = state.orders.filter(o => o.productId === p.id);
+    acc.periodRevenue += pr.revenue;
+    acc.periodProfit += pr.netProfit;
+    acc.periodAds += pr.adSpend;
+    acc.periodOrders += pr.totalOrders;
+    acc.periodDelivered += pr.delivered;
+    acc.allOrders += all.length;
+    acc.allDelivered += all.filter(o => o.status === 'delivered').length;
+    acc.allPending += all.filter(o => ['pending','confirmed','shipped'].includes(o.status)).length;
+    acc.stock += currentStock(p);
+    acc.stockValue += currentStock(p) * realUnitCost(p);
+    return acc;
+  }, { periodRevenue:0, periodProfit:0, periodAds:0, periodOrders:0, periodDelivered:0, allOrders:0, allDelivered:0, allPending:0, stock:0, stockValue:0 });
+
+  const roasGlobal = totals.periodAds > 0 ? totals.periodRevenue / totals.periodAds : 0;
+
+  // best product over period by profit
+  let best = null, bestProfit = -Infinity;
+  state.products.forEach(p => {
+    const pr = profitInRange(p.id, range.start, range.end);
+    if (pr.netProfit > bestProfit) { bestProfit = pr.netProfit; best = p; }
+  });
+
+  if (state.products.length === 0) {
+    document.getElementById('view').innerHTML = `
+      <div class="mb-5">
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Bienvenue 👋</h1>
+        <p class="text-ink-300 mt-1">Commencez par ajouter votre premier produit pour activer le pilotage temps réel.</p>
+      </div>
+      ${emptyState({
+        icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`,
+        title:"Aucun produit pour l'instant",
+        hint:'Créez un produit pour suivre stock, commandes, publicité, rentabilité et ROAS.',
+        ctaLabel:'Ajouter un produit',
+        onCta:()=> openProductModal()
+      })}`;
+    return;
+  }
+
+  const ps = periodShort();
+  document.getElementById('view').innerHTML = `
+    ${periodSelectorHTML()}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      ${kpi({ label:'Profit net ' + ps, value: fmtMoney(totals.periodProfit, operatingCurrency()), sub:`marge ${pct(totals.periodRevenue>0?(totals.periodProfit/totals.periodRevenue)*100:0)}`, tone: totals.periodProfit>=0?'mint':'rose', icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>` })}
+      ${kpi({ label:"Chiffre d'affaires " + ps, value: fmtMoney(totals.periodRevenue, operatingCurrency()), sub:`${totals.periodDelivered} livrées · ${totals.periodOrders} commandes`, tone:'violet', icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>` })}
+      ${kpi({ label:'ROAS ' + ps, value: roasGlobal.toFixed(2), sub:`ads ${fmtMoney(totals.periodAds, operatingCurrency())}`, tone: roasGlobal>=(state.settings.roasTarget||2)?'mint':'amber', icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13"/></svg>` })}
+      ${kpi({ label:'Stock total', value: fmtNum(totals.stock), sub:`valeur ${fmtMoney(totals.stockValue, operatingCurrency())}`, tone:'amber', icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>` })}
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-3 sm:mt-4">
+      ${kpi({ label:'Commandes en attente', value: fmtNum(totals.allPending), sub:`sur ${totals.allOrders} totales` })}
+      ${kpi({ label:'Commandes livrées (total)', value: fmtNum(totals.allDelivered), sub:`taux ${pct(totals.allOrders>0?(totals.allDelivered/totals.allOrders)*100:0)}` })}
+      ${kpi({ label:'Produits actifs', value: fmtNum(state.products.length), sub:`${state.countries.length} pays configurés` })}
+      ${kpi({ label:'Produit le + rentable ' + ps, value: best ? best.name : '—', sub: best ? fmtMoney(bestProfit, operatingCurrency()) : 'pas de données', tone:'mint' })}
+    </div>
+
+    <!-- Sales bar chart with period switcher -->
+    <div class="card p-4 sm:p-5 mt-4 sm:mt-5">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div>
+          <div class="font-semibold">Ventes par période</div>
+          <div class="text-[12px] text-ink-300">Chiffre d'affaires consolidé · commandes livrées</div>
+        </div>
+        <div class="flex items-center gap-1 bg-ink-800 rounded-lg p-1">
+          <button class="pill-tab active" data-sp="day">Jour</button>
+          <button class="pill-tab" data-sp="week">Semaine</button>
+          <button class="pill-tab" data-sp="month">Mois</button>
+          <button class="pill-tab" data-sp="year">Année</button>
+        </div>
+      </div>
+      <div style="height:260px"><canvas id="chart-sales"></canvas></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-5">
+      <div class="card p-4 sm:p-5 lg:col-span-2">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="font-semibold">Évolution sur 14 jours</div>
+            <div class="text-[12px] text-ink-300">Chiffre d'affaires · budget publicitaire · profit</div>
+          </div>
+        </div>
+        <div style="height:260px"><canvas id="chart-global"></canvas></div>
+      </div>
+      <div class="card p-4 sm:p-5">
+        <div class="font-semibold mb-3">Performance par produit (${periodShort()})</div>
+        <div class="space-y-3">
+          ${state.products.map(p => {
+            const pr = profitInRange(p.id, range.start, range.end);
+            const r = roasInRange(p.id, range.start, range.end);
+            return `<div class="flex items-center justify-between gap-3 cursor-pointer hover:bg-ink-850 p-2 -mx-2 rounded-lg" onclick="navigate('/products/${p.id}')">
+              <div class="min-w-0">
+                <div class="text-sm font-semibold truncate">${p.name}</div>
+                <div class="text-[11.5px] text-ink-300">${pr.delivered} livrées · ${fmtMoney(pr.revenue, operatingCurrency())}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-semibold ${pr.netProfit>=0?'stat-up':'stat-down'}">${fmtMoney(pr.netProfit, operatingCurrency())}</div>
+                <div class="text-[11.5px] text-ink-300">ROAS ${r.toFixed(2)}</div>
+              </div>
+            </div>`;
+          }).join('') || '<div class="text-sm text-ink-300">Aucun produit</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // charts
+  drawGlobalChart();
+  drawSalesChart('day');
+  document.querySelectorAll('[data-sp]').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('[data-sp]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      drawSalesChart(btn.dataset.sp);
+    };
+  });
+});
+
+/* Aggregate by period: returns { labels:[], revenue:[], delivered:[], orders:[] } */
+function aggregateSales(period, productId) {
+  const buckets = []; // { key, label, start, end }
+  const now = new Date();
+  if (period === 'day') {
+    for (let i = 13; i >= 0; i--) { const d = new Date(now); d.setDate(d.getDate()-i); const k = d.toISOString().slice(0,10); buckets.push({ key:k, label:k.slice(5), match:o => o.date === k }); }
+  } else if (period === 'week') {
+    // last 12 ISO-ish weeks (sunday-based for simplicity)
+    for (let i = 11; i >= 0; i--) {
+      const end = new Date(now); end.setDate(end.getDate() - i*7);
+      const start = new Date(end); start.setDate(start.getDate()-6);
+      const s = start.toISOString().slice(0,10), e = end.toISOString().slice(0,10);
+      buckets.push({ key:s+'_'+e, label:start.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+'→'+end.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}), match:o => o.date >= s && o.date <= e });
+    }
+  } else if (period === 'month') {
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      const ym = d.toISOString().slice(0,7);
+      buckets.push({ key:ym, label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}), match:o => o.date.slice(0,7) === ym });
+    }
+  } else if (period === 'year') {
+    for (let i = 4; i >= 0; i--) {
+      const y = String(now.getFullYear() - i);
+      buckets.push({ key:y, label:y, match:o => o.date.slice(0,4) === y });
+    }
+  }
+  const labels=[], revenue=[], delivered=[], orders=[];
+  buckets.forEach(b => {
+    let R=0, D=0, T=0;
+    state.orders.forEach(o => {
+      if (productId && o.productId !== productId) return;
+      if (!b.match(o)) return;
+      T += 1;
+      if (o.status === 'delivered') {
+        D += 1;
+        const p = productOf(o.productId);
+        R += (Number(o.quantity)||1) * (Number(p?.sellPrice)||0);
+      }
+    });
+    labels.push(b.label); revenue.push(R); delivered.push(D); orders.push(T);
+  });
+  return { labels, revenue, delivered, orders };
+}
+
+function drawSalesChart(period, productId) {
+  const ctx = document.getElementById('chart-sales'); if (!ctx) return;
+  if (window._chSales) window._chSales.destroy();
+  const { labels, revenue, delivered, orders } = aggregateSales(period, productId);
+  window._chSales = new Chart(ctx, {
+    data:{
+      labels,
+      datasets:[
+        { type:'bar', label:`CA livré (${operatingCurrency()})`, data:revenue, backgroundColor:'rgba(124,92,255,0.7)', borderRadius:6, yAxisID:'y' },
+        { type:'line', label:'Commandes livrées', data:delivered, borderColor:'#19d4a3', backgroundColor:'rgba(25,212,163,0.10)', tension:.35, fill:false, borderWidth:2, pointRadius:3, yAxisID:'y2' },
+        { type:'line', label:'Commandes totales', data:orders, borderColor:'#f5b14a', borderDash:[4,4], tension:.35, fill:false, borderWidth:2, pointRadius:0, yAxisID:'y2' }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#c7cbd6', boxWidth:12, font:{ size:11 } } } },
+      scales:{
+        x:{ ticks:{ color:'#8f95a6', font:{ size:10 } }, grid:{ color:'#13151b' } },
+        y:{ position:'left', ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ color:'#13151b' }, title:{ display:false } },
+        y2:{ position:'right', ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ display:false } }
+      }
+    }
+  });
+}
+
+function drawGlobalChart() {
+  const ctx = document.getElementById('chart-global'); if (!ctx) return;
+  const days = [];
+  for (let i = 13; i >= 0; i--) { const x = new Date(); x.setDate(x.getDate()-i); days.push(x.toISOString().slice(0,10)); }
+  const rev=[], ads=[], prof=[];
+  days.forEach(d => {
+    let R=0, A=0, P=0;
+    state.products.forEach(p => { const pr = profitOnDate(p.id, d); R+=pr.revenue; A+=pr.adSpend; P+=pr.netProfit; });
+    rev.push(R); ads.push(A); prof.push(P);
+  });
+  new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: days.map(d => d.slice(5)),
+      datasets:[
+        { label:'CA', data:rev, borderColor:'#7c5cff', backgroundColor:'rgba(124,92,255,0.10)', tension:.35, fill:true, borderWidth:2, pointRadius:0 },
+        { label:'Profit net', data:prof, borderColor:'#19d4a3', backgroundColor:'rgba(25,212,163,0.08)', tension:.35, fill:false, borderWidth:2, pointRadius:0 },
+        { label:'Budget ads', data:ads, borderColor:'#f5b14a', backgroundColor:'rgba(245,177,74,0.06)', tension:.35, fill:false, borderWidth:2, borderDash:[4,4], pointRadius:0 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#c7cbd6', boxWidth:12, font:{ size:11 } } } },
+      scales:{
+        x:{ ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ color:'#13151b' } },
+        y:{ ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ color:'#13151b' } }
+      }
+    }
+  });
+}
+
+/* === Products list === */
+on('/products', () => {
+  setTitle('Produits', `${state.products.length} produit${state.products.length>1?'s':''}`);
+  const v = document.getElementById('view');
+  const top = `
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="text-ink-300 text-sm">Chaque produit a son propre dashboard isolé.</div>
+      <button class="btn btn-primary" onclick="openProductModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter un produit
+      </button>
+    </div>`;
+  if (state.products.length === 0) {
+    v.innerHTML = top + emptyState({
+      icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`,
+      title:'Aucun produit',
+      hint:'Ajoutez votre premier produit COD pour générer son dashboard.',
+      ctaLabel:'Créer un produit',
+      onCta:()=> openProductModal()
+    });
+    return;
+  }
+  const range = periodRange();
+  const ps = periodShort();
+  v.innerHTML = top + periodSelectorHTML() + `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+    ${state.products.map(p => {
+      const pr = profitInRange(p.id, range.start, range.end);
+      const stock = currentStock(p);
+      const lowStock = stock <= (state.settings.lowStockThreshold||0);
+      const r = roasInRange(p.id, range.start, range.end);
+      const color = p.color || '#7c5cff';
+      const initial = (p.name||'?').trim().charAt(0).toUpperCase();
+      return `<div class="card p-5 cursor-pointer hover:border-ink-700 transition relative overflow-hidden" onclick="navigate('/products/${p.id}')">
+        <div class="absolute top-0 left-0 right-0 h-1" style="background:${color}"></div>
+        <div class="flex items-start gap-3">
+          <div class="w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden border border-ink-700 flex items-center justify-center" style="background:${p.image?'#0b0c0f':color+'22'}">
+            ${p.image ? `<img src="${p.image}" class="w-full h-full object-cover">` : `<span class="font-bold text-lg" style="color:${color}">${initial}</span>`}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+              <span class="chip chip-violet">${p.offerType}</span>
+              ${lowStock ? '<span class="chip chip-rose">stock faible</span>' : ''}
+              ${(p.tags||[]).slice(0,2).map(t => `<span class="chip">${t}</span>`).join('')}
+            </div>
+            <div class="font-semibold text-[15px] truncate">${p.name}</div>
+            <div class="text-[12px] text-ink-300 truncate">SKU ${p.sku||'—'} · ${fmtMoney(p.sellPrice, operatingCurrency())}</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mt-4">
+          <div><div class="text-[11px] text-ink-400">Stock</div><div class="text-sm font-semibold ${lowStock?'text-rose-500':''}">${fmtNum(stock)}</div></div>
+          <div><div class="text-[11px] text-ink-400">ROAS ${ps}</div><div class="text-sm font-semibold">${r.toFixed(2)}</div></div>
+          <div><div class="text-[11px] text-ink-400">Profit ${ps}</div><div class="text-sm font-semibold ${pr.netProfit>=0?'stat-up':'stat-down'}">${fmtMoney(pr.netProfit, operatingCurrency())}</div></div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+});
+
+/* === Product detail === */
+on('/products/:id', ({ id }) => {
+  const p = productOf(id);
+  if (!p) { document.getElementById('view').innerHTML = '<div class="card p-6">Produit introuvable. <a class="text-brand-500" href="#/products">Retour</a></div>'; return; }
+  setTitle(p.name, `SKU ${p.sku||'—'} · ${p.offerType} · ${periodLabel()}`);
+  const range = periodRange();
+  const ps = periodShort();
+  const pr = profitInRange(p.id, range.start, range.end);
+  const r = roasInRange(p.id, range.start, range.end);
+  const stock = currentStock(p);
+  const lowStock = stock <= (state.settings.lowStockThreshold||0);
+  const consumedPeriod = consumedInRange(p.id, range.start, range.end);
+  const ruc = realUnitCost(p);
+  const upo = unitsPerOrder(p);
+  const orders = ordersInRange(p.id, range.start, range.end);
+  const confirmed = orders.filter(o => ['confirmed','shipped','delivered'].includes(o.status)).length;
+  const shipped = orders.filter(o => ['shipped','delivered'].includes(o.status)).length;
+  const delivered = orders.filter(o => o.status === 'delivered').length;
+  const passedPeriod = orders.length;
+  const confirmationRate = passedPeriod>0 ? (confirmed/passedPeriod)*100 : 0;
+  const deliveryRate = confirmed>0 ? (delivered/confirmed)*100 : 0;
+  const periodAds = adsInRange(p.id, range.start, range.end).reduce((s,a)=> s + (Number(a.budget)||0), 0);
+  const cpa = orders.length>0 ? periodAds/orders.length : 0;
+  // Min orders compute (best-effort using avg shipping cost across countries with ads in period, else first country)
+  const adCountries = adsInRange(p.id, range.start, range.end).map(a => countryOf(a.countryId)).filter(Boolean);
+  const repCountry = adCountries[0] || state.countries[0] || null;
+  const minOrders = minOrdersToBreakEven(p, periodAds, repCountry);
+
+  const accent = p.color || '#7c5cff';
+  const initial = (p.name||'?').trim().charAt(0).toUpperCase();
+  document.getElementById('view').innerHTML = `
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost" onclick="navigate('/products')">← Produits</button>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button class="btn btn-ghost" onclick="openOrderModal(null,'${p.id}')">+ Commande</button>
+        <button class="btn btn-ghost" onclick="openAdModal(null,'${p.id}')">+ Budget pub du jour</button>
+        <button class="btn btn-ghost" onclick="openProductModal('${p.id}')">Modifier</button>
+        <button class="btn btn-danger" onclick="deleteProduct('${p.id}')">Supprimer</button>
+      </div>
+    </div>
+
+    <!-- Product banner -->
+    <div class="card p-5 mb-4 relative overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 h-1" style="background:${accent}"></div>
+      <div class="flex items-start gap-4">
+        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex-shrink-0 overflow-hidden border border-ink-700 flex items-center justify-center" style="background:${p.image?'#0b0c0f':accent+'22'}">
+          ${p.image ? `<img src="${p.image}" class="w-full h-full object-cover">` : `<span class="font-bold text-3xl" style="color:${accent}">${initial}</span>`}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 flex-wrap mb-1">
+            <span class="chip chip-violet">${p.offerType}</span>
+            ${(p.tags||[]).map(t => `<span class="chip">${t}</span>`).join('')}
+          </div>
+          <div class="text-xl sm:text-2xl font-bold leading-tight">${p.name}</div>
+          <div class="text-[12px] text-ink-300 mt-0.5">SKU ${p.sku||'—'} · ${fmtMoney(p.sellPrice, operatingCurrency())} · CRU ${fmtMoney(realUnitCost(p), operatingCurrency())} · ${unitsPerOrder(p)}u/livraison</div>
+          ${(p.customFields||[]).length ? `<div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 mt-3 text-[12px]">${p.customFields.map(cf => `<div><span class="text-ink-400">${cf.key}: </span><span class="text-ink-200">${cf.value||'—'}</span></div>`).join('')}</div>`:''}
+          ${p.notes ? `<div class="text-[12.5px] text-ink-300 mt-2 italic">${p.notes}</div>`:''}
+        </div>
+      </div>
+    </div>
+
+    ${periodSelectorHTML()}
+
+    <!-- KPI row -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      ${kpi({ label:'Profit net ' + ps, value: fmtMoney(pr.netProfit, operatingCurrency()), sub:`marge ${pct(pr.revenue>0?(pr.netProfit/pr.revenue)*100:0)}`, tone: pr.netProfit>=0?'mint':'rose' })}
+      ${kpi({ label:"Chiffre d'affaires " + ps, value: fmtMoney(pr.revenue, operatingCurrency()), sub:`${delivered} livrées` })}
+      ${kpi({ label:'ROAS ' + ps, value: r.toFixed(2), sub:`CPA ${fmtMoney(cpa, operatingCurrency())}`, tone: r>=(state.settings.roasTarget||2)?'mint':'amber' })}
+      ${kpi({ label:'Stock actuel', value: fmtNum(stock), sub:`valeur ${fmtMoney(stock*ruc, operatingCurrency())}`, tone: lowStock?'rose':'amber' })}
+    </div>
+
+    <!-- Blocks: commandes / stock / pub -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 mt-4">
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3"><div class="font-semibold">Commandes ${ps}</div><span class="chip">${passedPeriod} total</span></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><div class="text-[11px] text-ink-400">Passées</div><div class="text-lg font-bold">${passedPeriod}</div></div>
+          <div><div class="text-[11px] text-ink-400">Confirmées</div><div class="text-lg font-bold">${confirmed}</div></div>
+          <div><div class="text-[11px] text-ink-400">Expédiées</div><div class="text-lg font-bold">${shipped}</div></div>
+          <div><div class="text-[11px] text-ink-400">Livrées</div><div class="text-lg font-bold stat-up">${delivered}</div></div>
+        </div>
+        <div class="mt-4">
+          <div class="flex justify-between text-[12px] text-ink-300 mb-1"><span>Taux de confirmation</span><span>${pct(confirmationRate)}</span></div>
+          <div class="progress"><span style="width:${Math.min(100,confirmationRate)}%"></span></div>
+          <div class="flex justify-between text-[12px] text-ink-300 mt-3 mb-1"><span>Taux de livraison</span><span>${pct(deliveryRate)}</span></div>
+          <div class="progress"><span style="width:${Math.min(100,deliveryRate)}%"></span></div>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3"><div class="font-semibold">Stock intelligent</div>${lowStock?'<span class="chip chip-rose">faible</span>':'<span class="chip chip-mint">ok</span>'}</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><div class="text-[11px] text-ink-400">Stock actuel</div><div class="text-lg font-bold ${lowStock?'text-rose-500':''}">${fmtNum(stock)}</div></div>
+          <div><div class="text-[11px] text-ink-400">Consommé ${ps}</div><div class="text-lg font-bold">${fmtNum(consumedPeriod)}</div></div>
+          <div><div class="text-[11px] text-ink-400">Unités / commande livrée</div><div class="text-lg font-bold">${upo}</div></div>
+          <div><div class="text-[11px] text-ink-400">Coût réel unitaire</div><div class="text-lg font-bold">${fmtMoney(ruc, operatingCurrency())}</div></div>
+        </div>
+        <div class="mt-4 text-[12px] text-ink-300">Valeur du stock restant <span class="text-ink-100 font-semibold">${fmtMoney(stock*ruc, operatingCurrency())}</span></div>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3"><div class="font-semibold">Publicité ${ps}</div><span class="chip">${adsInRange(p.id, range.start, range.end).length} entrée${adsInRange(p.id, range.start, range.end).length>1?'s':''}</span></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><div class="text-[11px] text-ink-400">Budget total</div><div class="text-lg font-bold">${fmtMoney(periodAds, operatingCurrency())}</div></div>
+          <div><div class="text-[11px] text-ink-400">ROAS</div><div class="text-lg font-bold">${r.toFixed(2)}</div></div>
+          <div><div class="text-[11px] text-ink-400">CPA</div><div class="text-lg font-bold">${fmtMoney(cpa, operatingCurrency())}</div></div>
+          <div><div class="text-[11px] text-ink-400">Coût liv./acquis.</div><div class="text-lg font-bold">${fmtMoney(delivered>0?(adCountries.reduce((s,c)=> s+(c?.localShippingCost||0),0)/Math.max(adCountries.length,1)):0, operatingCurrency())}</div></div>
+        </div>
+        <button class="btn btn-ghost w-full mt-4" onclick="openAdModal(null,'${p.id}')">Ajouter / modifier budget</button>
+      </div>
+    </div>
+
+    <!-- Rentabilité & objectif -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mt-4">
+      <div class="card p-5">
+        <div class="font-semibold mb-3">Rentabilité ${ps}</div>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-ink-800">
+            <tr><td class="py-2 text-ink-300">Chiffre d'affaires brut</td><td class="py-2 text-right font-semibold">${fmtMoney(pr.revenue, operatingCurrency())}</td></tr>
+            <tr><td class="py-2 text-ink-300">– Coût produit (livrés × ${upo} × CRU)</td><td class="py-2 text-right">-${fmtMoney(pr.productCost, operatingCurrency())}</td></tr>
+            <tr><td class="py-2 text-ink-300">– Frais livraison locale</td><td class="py-2 text-right">-${fmtMoney(pr.shippingCost, operatingCurrency())}</td></tr>
+            <tr><td class="py-2 text-ink-300">– Budget publicitaire</td><td class="py-2 text-right">-${fmtMoney(pr.adSpend, operatingCurrency())}</td></tr>
+            <tr><td class="py-2 text-ink-300">– Frais COD (${state.settings.codFeePercent||0}%)</td><td class="py-2 text-right">-${fmtMoney(pr.codFees, operatingCurrency())}</td></tr>
+            <tr><td class="py-2 text-ink-300">– Frais plateforme (${state.settings.platformFeePercent||0}%)</td><td class="py-2 text-right">-${fmtMoney(pr.platformFees, operatingCurrency())}</td></tr>
+            <tr><td class="py-2 text-ink-300">– Frais logistiques</td><td class="py-2 text-right">-${fmtMoney(pr.logisticsFees, operatingCurrency())}</td></tr>
+            <tr><td class="pt-3 font-bold">Profit net ${ps}</td><td class="pt-3 text-right font-bold ${pr.netProfit>=0?'stat-up':'stat-down'}">${fmtMoney(pr.netProfit, operatingCurrency())}</td></tr>
+            <tr><td class="py-2 text-ink-300">Marge</td><td class="py-2 text-right font-semibold">${pct(pr.revenue>0?(pr.netProfit/pr.revenue)*100:0)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card p-5">
+        <div class="font-semibold mb-3">Objectif minimum de ventes</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <span class="label">Budget pub envisagé</span>
+            <input type="number" class="input" id="sim-budget" value="${periodAds || 0}" step="1" />
+          </div>
+          <div>
+            <span class="label">Pays de référence</span>
+            <select class="select" id="sim-country">${state.countries.map(c => `<option value="${c.id}" ${repCountry && c.id===repCountry.id?'selected':''}>${c.flag||''} ${c.name} (${c.currency})</option>`).join('') || '<option value="">— aucun pays —</option>'}</select>
+          </div>
+        </div>
+        <div id="sim-result" class="mt-4 card-soft p-4">
+          <div class="text-[12px] text-ink-300">Minimum de commandes nécessaires</div>
+          <div class="text-2xl font-bold mt-1 gradient-text" id="sim-min">${isFinite(minOrders)?minOrders:'∞'}</div>
+          <div id="sim-detail" class="text-[12px] text-ink-300 mt-1"></div>
+        </div>
+        <div class="text-[12px] text-ink-400 mt-3">Formule basée sur prix de vente, coût réel unitaire, offre (${upo}u/livraison), frais COD/plateforme et coût d'expédition local.</div>
+      </div>
+    </div>
+
+    <!-- Évolution & commandes récentes -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mt-4">
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-2"><div class="font-semibold">Évolution sur 14 jours</div></div>
+        <div style="height:240px"><canvas id="chart-prod"></canvas></div>
+      </div>
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3"><div class="font-semibold">Commandes récentes</div><button class="btn btn-ghost text-[12px]" onclick="openOrderModal(null,'${p.id}')">+ Ajouter</button></div>
+        <div class="overflow-auto" style="max-height:280px">
+          <table class="table w-full">
+            <thead><tr><th>Date</th><th>Pays</th><th>Qté</th><th>Statut</th><th></th></tr></thead>
+            <tbody>
+              ${state.orders.filter(o => o.productId === p.id).slice().sort((a,b)=> b.date.localeCompare(a.date)).slice(0,30).map(o => `
+                <tr>
+                  <td>${o.date}</td>
+                  <td>${(countryOf(o.countryId)?.flag||'')} ${countryOf(o.countryId)?.name||'—'}</td>
+                  <td>${o.quantity||1}</td>
+                  <td>${statusChip(o.status)}</td>
+                  <td class="text-right whitespace-nowrap">
+                    <button class="btn btn-ghost py-1 px-2 text-[12px]" onclick="openOrderModal('${o.id}')">✎</button>
+                    <button class="btn btn-danger py-1 px-2 text-[12px]" onclick="deleteOrder('${o.id}')">✕</button>
+                  </td>
+                </tr>`).join('') || '<tr><td colspan="5" class="text-center text-ink-300 py-6">Aucune commande</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // simulator
+  const sim = () => {
+    const b = Number(document.getElementById('sim-budget').value)||0;
+    const cId = document.getElementById('sim-country').value;
+    const c = countryOf(cId);
+    const n = minOrdersToBreakEven(p, b, c);
+    const upo2 = unitsPerOrder(p);
+    const ruc2 = realUnitCost(p);
+    const feeRate = ((state.settings.codFeePercent||0) + (state.settings.platformFeePercent||0))/100;
+    const ship = Number(c?.localShippingCost) || 0;
+    const logis = Number(state.settings.logisticsFeePerOrder||0);
+    const contribution = (Number(p.sellPrice)||0) * (1 - feeRate) - upo2 * ruc2 - ship - logis;
+    document.getElementById('sim-min').textContent = isFinite(n)?n:'∞';
+    document.getElementById('sim-detail').textContent = isFinite(n)
+      ? `Contribution unitaire ${fmtMoney(contribution, operatingCurrency())} · objectif: ${n} ventes`
+      : `Contribution unitaire négative (${fmtMoney(contribution, operatingCurrency())}). Augmentez le prix ou réduisez les coûts.`;
+  };
+  document.getElementById('sim-budget').addEventListener('input', sim);
+  document.getElementById('sim-country').addEventListener('change', sim);
+  sim();
+
+  // chart product
+  drawProductChart(p);
+});
+
+function drawProductChart(p) {
+  const ctx = document.getElementById('chart-prod'); if (!ctx) return;
+  const days = []; for (let i=13;i>=0;i--){const x=new Date(); x.setDate(x.getDate()-i); days.push(x.toISOString().slice(0,10));}
+  const profit = days.map(d => profitOnDate(p.id, d).netProfit);
+  const orders = days.map(d => ordersOf(p.id, d).length);
+  const roas = days.map(d => roasFor(p.id, d));
+  new Chart(ctx, {
+    data: {
+      labels: days.map(d => d.slice(5)),
+      datasets: [
+        { type:'bar', label:'Commandes', data: orders, backgroundColor:'rgba(124,92,255,0.35)', borderRadius:6, yAxisID:'y2' },
+        { type:'line', label:'Profit', data: profit, borderColor:'#19d4a3', backgroundColor:'rgba(25,212,163,0.12)', fill:true, tension:.35, borderWidth:2, pointRadius:0, yAxisID:'y' },
+        { type:'line', label:'ROAS', data: roas, borderColor:'#f5b14a', backgroundColor:'rgba(245,177,74,0.05)', tension:.35, borderWidth:2, borderDash:[4,4], pointRadius:0, yAxisID:'y3' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#c7cbd6', boxWidth:12, font:{ size:11 } } } },
+      scales:{
+        x:{ ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ color:'#13151b' } },
+        y:{ position:'left', ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ color:'#13151b' } },
+        y2:{ position:'right', ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ display:false } },
+        y3:{ position:'right', display:false }
+      }
+    }
+  });
+}
+
+function statusChip(s) {
+  if (s === 'delivered') return '<span class="chip chip-mint">livrée</span>';
+  if (s === 'shipped') return '<span class="chip chip-violet">expédiée</span>';
+  if (s === 'confirmed') return '<span class="chip chip-amber">confirmée</span>';
+  if (s === 'cancelled') return '<span class="chip chip-rose">annulée</span>';
+  return '<span class="chip">en attente</span>';
+}
+
+/* === Orders (global view) === */
+on('/orders', () => {
+  setTitle('Commandes', `${state.orders.length} commande${state.orders.length>1?'s':''}`);
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+      <div class="flex items-center gap-2">
+        <span class="pill-tab active" data-f="all">Toutes</span>
+        <span class="pill-tab" data-f="pending">En attente</span>
+        <span class="pill-tab" data-f="confirmed">Confirmées</span>
+        <span class="pill-tab" data-f="shipped">Expédiées</span>
+        <span class="pill-tab" data-f="delivered">Livrées</span>
+        <span class="pill-tab" data-f="cancelled">Annulées</span>
+      </div>
+      <button class="btn btn-primary" onclick="openOrderModal()" ${state.products.length===0?'disabled':''}>+ Nouvelle commande</button>
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table w-full">
+          <thead><tr><th>Date</th><th>Produit</th><th>Pays</th><th>Qté</th><th>Montant</th><th>Statut</th><th></th></tr></thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </div>
+    </div>`;
+  let filter = 'all';
+  const renderRows = () => {
+    const rows = state.orders.slice().sort((a,b)=> b.date.localeCompare(a.date))
+      .filter(o => filter === 'all' ? true : o.status === filter);
+    document.getElementById('orders-tbody').innerHTML = rows.length === 0
+      ? `<tr><td colspan="7" class="text-center text-ink-300 py-8">Aucune commande</td></tr>`
+      : rows.map(o => {
+          const p = productOf(o.productId); const c = countryOf(o.countryId);
+          const amount = (Number(o.quantity)||1) * (Number(p?.sellPrice)||0);
+          return `<tr>
+            <td>${o.date}</td>
+            <td><a class="hover:underline" href="#/products/${o.productId}" onclick="event.preventDefault(); navigate('/products/${o.productId}')">${p?.name||'—'}</a></td>
+            <td>${c?.flag||''} ${c?.name||'—'}</td>
+            <td>${o.quantity||1}</td>
+            <td>${fmtMoney(amount, operatingCurrency())}</td>
+            <td>${statusChip(o.status)}</td>
+            <td class="text-right whitespace-nowrap">
+              <button class="btn btn-ghost py-1 px-2 text-[12px]" onclick="openOrderModal('${o.id}')">✎</button>
+              <button class="btn btn-danger py-1 px-2 text-[12px]" onclick="deleteOrder('${o.id}')">✕</button>
+            </td>
+          </tr>`;
+        }).join('');
+  };
+  document.querySelectorAll('.pill-tab').forEach(t => {
+    t.onclick = () => {
+      document.querySelectorAll('.pill-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      filter = t.dataset.f;
+      renderRows();
+    };
+  });
+  renderRows();
+});
+
+/* === Ads (global view) === */
+
+// Aggregate ads stats per platform over last N days (with proportional revenue attribution)
+function platformStats(daysBack=30) {
+  const sinceDate = (() => { const d = new Date(); d.setDate(d.getDate() - daysBack + 1); return d.toISOString().slice(0,10); })();
+  const ads = state.ads.filter(a => a.date >= sinceDate);
+  // Build key (date+pid+cid) -> { totalSpend, revenue, deliveredOrders }
+  const groupRevenue = {};
+  ads.forEach(a => {
+    const key = a.date + '|' + a.productId + '|' + (a.countryId||'');
+    if (!groupRevenue[key]) {
+      const p = productOf(a.productId);
+      const delivered = state.orders.filter(o => o.date === a.date && o.productId === a.productId && (a.countryId ? o.countryId === a.countryId : true) && o.status === 'delivered');
+      const totalAd = state.ads.filter(x => x.date === a.date && x.productId === a.productId && (a.countryId ? x.countryId === a.countryId : !x.countryId)).reduce((s,x)=> s + (Number(x.budget)||0), 0);
+      const revenue = delivered.reduce((s,o)=> s + (Number(o.quantity)||1) * (Number(p?.sellPrice)||0), 0);
+      groupRevenue[key] = { totalAd, revenue, delivered: delivered.length };
+    }
+  });
+  const stats = {};
+  ads.forEach(a => {
+    const plat = a.platform || 'Autre';
+    if (!stats[plat]) stats[plat] = { spend:0, revenue:0, orders:0, delivered:0 };
+    const key = a.date + '|' + a.productId + '|' + (a.countryId||'');
+    const g = groupRevenue[key];
+    const share = g.totalAd > 0 ? (Number(a.budget)||0)/g.totalAd : 0;
+    stats[plat].spend += Number(a.budget)||0;
+    stats[plat].revenue += g.revenue * share;
+    stats[plat].delivered += g.delivered * share;
+  });
+  return stats;
+}
+
+on('/ads', () => {
+  setTitle('Publicité', `Pilotage des dépenses publicitaires`);
+  const v = document.getElementById('view');
+  const sinceDays = 30;
+  const since = (() => { const d = new Date(); d.setDate(d.getDate() - sinceDays + 1); return d.toISOString().slice(0,10); })();
+  const recentAds = state.ads.filter(a => a.date >= since);
+  const totalSpend = recentAds.reduce((s,a) => s + (Number(a.budget)||0), 0);
+  // Aggregate revenue per (date, product, country) like above
+  const platStats = platformStats(sinceDays);
+  const totalAttribRevenue = Object.values(platStats).reduce((s, p) => s + p.revenue, 0);
+  const totalAttribOrders = Object.values(platStats).reduce((s, p) => s + p.delivered, 0);
+  const avgRoas = totalSpend > 0 ? totalAttribRevenue / totalSpend : 0;
+  const avgCPA = totalAttribOrders > 0 ? totalSpend / totalAttribOrders : 0;
+  let bestPlat = null, bestRoas = -1;
+  Object.entries(platStats).forEach(([k,s]) => { const r = s.spend>0?s.revenue/s.spend:0; if (r > bestRoas) { bestRoas = r; bestPlat = k; } });
+
+  v.innerHTML = `
+    <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+      <div class="text-ink-300 text-sm">30 derniers jours · ROAS et revenus attribués proportionnellement à la dépense par plateforme.</div>
+      <div class="flex gap-2">
+        <button class="btn btn-ghost" onclick="openBulkAdModal()" ${state.products.length===0?'disabled':''}>⚡ Saisie rapide multi-pays</button>
+        <button class="btn btn-primary" onclick="openAdModal()" ${state.products.length===0?'disabled':''}>+ Nouveau budget</button>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      ${kpi({ label:'Dépense (30j)', value: fmtMoney(totalSpend, operatingCurrency()), sub:`${recentAds.length} entrée${recentAds.length>1?'s':''}`, tone:'amber' })}
+      ${kpi({ label:'ROAS moyen', value: avgRoas.toFixed(2), sub:`CA ${fmtMoney(totalAttribRevenue, operatingCurrency())}`, tone: avgRoas>=(state.settings.roasTarget||2)?'mint':'rose' })}
+      ${kpi({ label:'CPA moyen', value: fmtMoney(avgCPA, operatingCurrency()), sub:`${fmtNum(totalAttribOrders,1)} livrées attribuées` })}
+      ${kpi({ label:'Meilleure plateforme', value: bestPlat||'—', sub: bestPlat?`ROAS ${bestRoas.toFixed(2)}`:'aucune donnée', tone:'mint' })}
+    </div>
+
+    <!-- Charts row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-5">
+      <div class="card p-5">
+        <div class="font-semibold mb-3">Performance par plateforme (30j)</div>
+        <div style="height:280px"><canvas id="chart-platform"></canvas></div>
+      </div>
+      <div class="card p-5">
+        <div class="font-semibold mb-3">Dépense vs revenu (30j)</div>
+        <div style="height:280px"><canvas id="chart-spend-rev"></canvas></div>
+      </div>
+    </div>
+
+    <!-- History table -->
+    <div class="card overflow-hidden mt-4 sm:mt-5">
+      <div class="px-5 py-3 border-b border-ink-800 flex items-center justify-between">
+        <div class="font-semibold">Historique des budgets</div>
+        <span class="chip">${state.ads.length} entrée${state.ads.length>1?'s':''}</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="table w-full">
+          <thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th>Pays</th><th>Budget</th><th>ROAS</th><th></th></tr></thead>
+          <tbody>
+            ${state.ads.length===0?`<tr><td colspan="7" class="text-center text-ink-300 py-8">Aucune entrée publicitaire</td></tr>`:
+              state.ads.slice().sort((a,b)=> b.date.localeCompare(a.date)).slice(0,100).map(a => {
+                const p = productOf(a.productId); const c = countryOf(a.countryId);
+                const r = roasFor(a.productId, a.date);
+                return `<tr>
+                  <td>${a.date}</td>
+                  <td><a class="hover:underline" href="#/products/${a.productId}" onclick="event.preventDefault(); navigate('/products/${a.productId}')">${p?.name||'—'}</a></td>
+                  <td>${a.platform||'—'}</td>
+                  <td>${c?.flag||''} ${c?.name||'—'}</td>
+                  <td>${fmtMoney(a.budget, operatingCurrency())}</td>
+                  <td><span class="${r>=(state.settings.roasTarget||2)?'stat-up':'stat-down'} font-semibold">${r.toFixed(2)}</span></td>
+                  <td class="text-right whitespace-nowrap">
+                    <button class="btn btn-ghost py-1 px-2 text-[12px]" onclick="openAdModal('${a.id}')">✎</button>
+                    <button class="btn btn-danger py-1 px-2 text-[12px]" onclick="deleteAd('${a.id}')">✕</button>
+                  </td>
+                </tr>`;
+              }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  drawPlatformChart();
+  drawSpendRevChart(sinceDays);
+});
+
+function drawPlatformChart() {
+  const ctx = document.getElementById('chart-platform'); if (!ctx) return;
+  const ps = platformStats(30);
+  const plats = Object.keys(ps); if (plats.length === 0) { return; }
+  const spend = plats.map(p => ps[p].spend);
+  const revenue = plats.map(p => ps[p].revenue);
+  const roas = plats.map(p => ps[p].spend>0 ? ps[p].revenue/ps[p].spend : 0);
+  if (window._chPlat) window._chPlat.destroy();
+  window._chPlat = new Chart(ctx, {
+    data:{
+      labels: plats,
+      datasets:[
+        { type:'bar', label:'Dépense', data:spend, backgroundColor:'rgba(245,177,74,0.7)', borderRadius:6, yAxisID:'y' },
+        { type:'bar', label:'CA attribué', data:revenue, backgroundColor:'rgba(124,92,255,0.7)', borderRadius:6, yAxisID:'y' },
+        { type:'line', label:'ROAS', data:roas, borderColor:'#19d4a3', backgroundColor:'rgba(25,212,163,0.10)', tension:.35, fill:false, borderWidth:2, pointRadius:4, yAxisID:'y2' }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#c7cbd6', boxWidth:12, font:{ size:11 } } } },
+      scales:{
+        x:{ ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ color:'#13151b' } },
+        y:{ position:'left', ticks:{ color:'#8f95a6', font:{ size:10 } }, grid:{ color:'#13151b' } },
+        y2:{ position:'right', ticks:{ color:'#8f95a6', font:{ size:10 } }, grid:{ display:false } }
+      }
+    }
+  });
+}
+
+function drawSpendRevChart(days=30) {
+  const ctx = document.getElementById('chart-spend-rev'); if (!ctx) return;
+  const dates = []; for (let i=days-1;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); dates.push(d.toISOString().slice(0,10)); }
+  const spend = dates.map(d => state.ads.filter(a => a.date === d).reduce((s,a)=> s + (Number(a.budget)||0), 0));
+  const revenue = dates.map(d => state.orders.filter(o => o.date === d && o.status === 'delivered').reduce((s,o)=> s + (Number(o.quantity)||1) * (Number(productOf(o.productId)?.sellPrice)||0), 0));
+  const diff = dates.map((_,i) => revenue[i] - spend[i]);
+  if (window._chSR) window._chSR.destroy();
+  window._chSR = new Chart(ctx, {
+    data:{
+      labels: dates.map(d => d.slice(5)),
+      datasets:[
+        { type:'line', label:'CA livré', data:revenue, borderColor:'#7c5cff', backgroundColor:'rgba(124,92,255,0.12)', tension:.35, fill:true, borderWidth:2, pointRadius:0 },
+        { type:'line', label:'Dépense ads', data:spend, borderColor:'#f5b14a', backgroundColor:'rgba(245,177,74,0.06)', tension:.35, fill:false, borderWidth:2, borderDash:[4,4], pointRadius:0 },
+        { type:'bar', label:'Marge brute (CA − ads)', data:diff, backgroundColor: diff.map(v => v>=0?'rgba(25,212,163,0.55)':'rgba(255,93,122,0.55)'), borderRadius:4, yAxisID:'y' }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#c7cbd6', boxWidth:12, font:{ size:11 } } } },
+      scales:{
+        x:{ ticks:{ color:'#8f95a6', font:{ size:10 } }, grid:{ color:'#13151b' } },
+        y:{ ticks:{ color:'#8f95a6', font:{ size:11 } }, grid:{ color:'#13151b' } }
+      }
+    }
+  });
+}
+
+/* ---------- Modal: Bulk multi-country ads ---------- */
+function openBulkAdModal() {
+  if (state.products.length === 0) { toast("Créez d'abord un produit", 'danger'); return; }
+  if (state.countries.length === 0) { toast("Ajoutez d'abord des pays", 'danger'); return; }
+  modal('Saisie rapide multi-pays',
+    `<form id="bulk-form" class="space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div><span class="label">Date</span><input class="input" type="date" name="date" value="${today()}"></div>
+        <div>
+          <span class="label">Produit</span>
+          <select class="select" name="productId">${state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
+        </div>
+        <div>
+          <span class="label">Plateforme</span>
+          <select class="select" name="platform">${['Meta','TikTok','Google','Snapchat','Autre'].map(x => `<option value="${x}">${x}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div>
+        <span class="label">Budget par pays (${operatingCurrency()})</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          ${state.countries.map(c => `
+            <div class="card-soft p-3 flex items-center justify-between gap-2">
+              <div class="text-sm truncate">${c.flag||''} ${c.name}</div>
+              <input type="number" class="input" style="max-width:120px" step="0.01" data-bulk-country="${c.id}" placeholder="0">
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="text-[12px] text-ink-300">Laisse à 0 (ou vide) pour ne pas créer d'entrée pour un pays.</div>
+    </form>`,
+    { footer: `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+               <button class="btn btn-primary" id="bulk-save">Créer ${state.countries.length} entrée(s)</button>` }
+  );
+  document.getElementById('bulk-save').onclick = () => {
+    const fd = new FormData(document.getElementById('bulk-form'));
+    const date = fd.get('date'), productId = fd.get('productId'), platform = fd.get('platform');
+    let added = 0;
+    document.querySelectorAll('[data-bulk-country]').forEach(el => {
+      const b = Number(el.value)||0;
+      if (b > 0) {
+        state.ads.push({ id: uid(), date, productId, countryId: el.dataset.bulkCountry, platform, budget: b });
+        added++;
+      }
+    });
+    if (added === 0) { toast('Aucun budget renseigné', 'danger'); return; }
+    saveState(); closeModal(); toast(`${added} entrée(s) créée(s)`, 'success'); render();
+  };
+}
+
+/* === Countries === */
+on('/countries', () => {
+  setTitle('Pays de vente', `${state.countries.length} pays configuré${state.countries.length>1?'s':''}`);
+  const v = document.getElementById('view');
+  // compute aggregates per country
+  const stats = state.countries.map(c => {
+    const ords = state.orders.filter(o => o.countryId === c.id);
+    const delivered = ords.filter(o => o.status === 'delivered');
+    const revenue = delivered.reduce((s,o)=> s + (Number(o.quantity)||1) * (Number(productOf(o.productId)?.sellPrice)||0), 0);
+    const ad = state.ads.filter(a => a.countryId === c.id).reduce((s,a)=> s + (Number(a.budget)||0), 0);
+    return { c, ords: ords.length, delivered: delivered.length, revenue, ad, roas: ad>0?revenue/ad:0, deliveryRate: ords.length>0 ? (delivered.length/ords.length)*100 : 0 };
+  });
+  v.innerHTML = `
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="text-ink-300 text-sm">Configurez vos pays cibles pour activer les stats par marché.</div>
+      <button class="btn btn-primary" onclick="openCountryModal()">+ Ajouter un pays</button>
+    </div>
+    ${state.countries.length === 0 ? emptyState({
+      icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>`,
+      title:'Aucun pays configuré',
+      hint:'Ajoutez les marchés où vous vendez (devise, coût livraison local).',
+      ctaLabel:'Ajouter un pays', onCta:()=> openCountryModal()
+    }) : `
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+        ${stats.map(s => `
+          <div class="card p-5">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="text-xl font-bold leading-none mb-1">${s.c.flag||'🏳️'} ${s.c.name}</div>
+                <div class="text-[12px] text-ink-300">Devise ${s.c.currency} · Livraison ${fmtMoney(s.c.localShippingCost, operatingCurrency())}</div>
+              </div>
+              <div class="flex gap-1">
+                <button class="btn btn-ghost py-1 px-2 text-[12px]" onclick="openCountryModal('${s.c.id}')">✎</button>
+                <button class="btn btn-danger py-1 px-2 text-[12px]" onclick="deleteCountry('${s.c.id}')">✕</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-4">
+              <div><div class="text-[11px] text-ink-400">Commandes</div><div class="font-semibold">${s.ords}</div></div>
+              <div><div class="text-[11px] text-ink-400">Livrées</div><div class="font-semibold stat-up">${s.delivered}</div></div>
+              <div><div class="text-[11px] text-ink-400">CA</div><div class="font-semibold">${fmtMoney(s.revenue, operatingCurrency())}</div></div>
+              <div><div class="text-[11px] text-ink-400">ROAS local</div><div class="font-semibold">${s.roas.toFixed(2)}</div></div>
+            </div>
+            <div class="mt-3"><div class="flex justify-between text-[12px] text-ink-300 mb-1"><span>Taux livraison</span><span>${pct(s.deliveryRate)}</span></div><div class="progress"><span style="width:${Math.min(100,s.deliveryRate)}%"></span></div></div>
+          </div>
+        `).join('')}
+      </div>`}`;
+});
+
+/* === History === */
+on('/history', () => {
+  setTitle('Historique & courbes', 'Tracking journalier automatique');
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div class="card p-5 lg:col-span-2">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <div class="font-semibold">Évolution sur 30 jours</div>
+            <div class="text-[12px] text-ink-300">Toutes données consolidées</div>
+          </div>
+          <select id="hist-product" class="select w-auto">
+            <option value="">Tous les produits</option>
+            ${state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+          </select>
+        </div>
+        <div style="height:300px"><canvas id="hist-chart"></canvas></div>
+      </div>
+      <div class="card p-5">
+        <div class="font-semibold mb-3">Vue d'ensemble par jour</div>
+        <div class="overflow-auto" style="max-height:340px">
+          <table class="table w-full">
+            <thead><tr><th>Jour</th><th>CA</th><th>Profit</th><th>Cmd.</th></tr></thead>
+            <tbody id="hist-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 mt-4">
+      <div class="card p-5"><div class="font-semibold mb-2">ROAS</div><div style="height:200px"><canvas id="h-roas"></canvas></div></div>
+      <div class="card p-5"><div class="font-semibold mb-2">Stock consommé</div><div style="height:200px"><canvas id="h-stock"></canvas></div></div>
+      <div class="card p-5"><div class="font-semibold mb-2">Commandes</div><div style="height:200px"><canvas id="h-orders"></canvas></div></div>
+    </div>
+  `;
+  const sel = document.getElementById('hist-product');
+  sel.onchange = () => drawHistory(sel.value);
+  drawHistory('');
+});
+
+function drawHistory(pid) {
+  const days = []; for (let i=29;i>=0;i--){const x=new Date(); x.setDate(x.getDate()-i); days.push(x.toISOString().slice(0,10));}
+  const arr = (fn) => days.map(d => state.products.filter(p => !pid || p.id===pid).reduce((s,p)=> s + fn(p, d), 0));
+  const rev = arr((p,d)=> profitOnDate(p.id,d).revenue);
+  const prof = arr((p,d)=> profitOnDate(p.id,d).netProfit);
+  const ads = arr((p,d)=> profitOnDate(p.id,d).adSpend);
+  const roas = days.map(d => {
+    const a = state.products.filter(p => !pid || p.id===pid).reduce((s,p)=> s + adsOf(p.id,d).reduce((x,a)=> x + (Number(a.budget)||0),0), 0);
+    const r = state.products.filter(p => !pid || p.id===pid).reduce((s,p)=> {
+      const dl = ordersOf(p.id, d).filter(o => o.status==='delivered');
+      return s + dl.reduce((x,o)=> x + (Number(o.quantity)||1) * (Number(p.sellPrice)||0), 0);
+    }, 0);
+    return a>0 ? r/a : 0;
+  });
+  const stock = arr((p,d)=> consumedOnDate(p.id, d));
+  const ords = days.map(d => state.products.filter(p => !pid || p.id===pid).reduce((s,p)=> s + ordersOf(p.id,d).length, 0));
+
+  // big chart
+  const mk = (id, datasets) => {
+    const ctx = document.getElementById(id); if (!ctx) return;
+    if (window['_ch_'+id]) window['_ch_'+id].destroy();
+    window['_ch_'+id] = new Chart(ctx, {
+      data: { labels: days.map(d => d.slice(5)), datasets },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{ color:'#c7cbd6', boxWidth:12, font:{ size:11 } } } },
+        scales:{
+          x:{ ticks:{ color:'#8f95a6', font:{ size:10 } }, grid:{ color:'#13151b' } },
+          y:{ ticks:{ color:'#8f95a6', font:{ size:10 } }, grid:{ color:'#13151b' } }
+        }
+      }
+    });
+  };
+  mk('hist-chart', [
+    { type:'line', label:'CA', data:rev, borderColor:'#7c5cff', backgroundColor:'rgba(124,92,255,0.12)', tension:.35, fill:true, borderWidth:2, pointRadius:0 },
+    { type:'line', label:'Profit', data:prof, borderColor:'#19d4a3', tension:.35, borderWidth:2, pointRadius:0 },
+    { type:'line', label:'Ads', data:ads, borderColor:'#f5b14a', borderDash:[4,4], tension:.35, borderWidth:2, pointRadius:0 }
+  ]);
+  mk('h-roas', [{ type:'line', label:'ROAS', data:roas, borderColor:'#f5b14a', tension:.35, borderWidth:2, pointRadius:0, backgroundColor:'rgba(245,177,74,0.10)', fill:true }]);
+  mk('h-stock', [{ type:'bar', label:'Unités consommées', data:stock, backgroundColor:'rgba(124,92,255,0.5)', borderRadius:4 }]);
+  mk('h-orders', [{ type:'bar', label:'Commandes', data:ords, backgroundColor:'rgba(25,212,163,0.6)', borderRadius:4 }]);
+
+  // table
+  document.getElementById('hist-tbody').innerHTML = days.slice().reverse().map((d, idx) => {
+    const i = days.length - 1 - idx;
+    return `<tr>
+      <td>${d.slice(5)}</td>
+      <td>${fmtMoney(rev[i], operatingCurrency())}</td>
+      <td class="${prof[i]>=0?'stat-up':'stat-down'} font-semibold">${fmtMoney(prof[i], operatingCurrency())}</td>
+      <td>${ords[i]}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* === CA & Bénéfice — tableau journalier === */
+// Filtre produit local au route (re-render quand changé)
+let _profitProductFilter = '';
+function setProfitFilter(v) { _profitProductFilter = v; render(); }
+
+on('/profit', () => {
+  setTitle('CA & Bénéfice', periodLabel());
+  const range = periodRange();
+  const ps = periodShort();
+  const dates = datesInRange(range.start, range.end);
+  const filterId = _profitProductFilter;
+  const products = filterId ? state.products.filter(p => p.id === filterId) : state.products;
+
+  // Compute per-date row stats (summed across selected products)
+  const rows = dates.map(d => {
+    const stats = products.reduce((acc, p) => {
+      const pr = profitOnDate(p.id, d);
+      const upo = unitsPerOrder(p);
+      const deliveredOrders = state.orders.filter(o => o.productId === p.id && o.date === d && o.status === 'delivered');
+      const ventes = deliveredOrders.reduce((s,o) => s + (Number(o.quantity)||1), 0);
+      acc.ventes += ventes;
+      acc.ordersCount += deliveredOrders.length;
+      acc.ca += pr.revenue;
+      acc.pub += pr.adSpend;
+      acc.coutProduit += pr.productCost; // = unités livrées × (coût fournisseur + livraison fournisseur)
+      acc.fraisAnnexes += pr.codFees + pr.platformFees + pr.shippingCost + pr.logisticsFees;
+      acc.benefice += pr.netProfit;
+      return acc;
+    }, { ventes:0, ordersCount:0, ca:0, pub:0, coutProduit:0, fraisAnnexes:0, benefice:0 });
+    return { date: d, ...stats };
+  }).filter(r => r.ventes > 0 || r.ca > 0 || r.pub > 0 || r.coutProduit > 0);
+
+  const totals = rows.reduce((acc, r) => ({
+    ventes: acc.ventes + r.ventes,
+    ordersCount: acc.ordersCount + r.ordersCount,
+    ca: acc.ca + r.ca,
+    pub: acc.pub + r.pub,
+    coutProduit: acc.coutProduit + r.coutProduit,
+    fraisAnnexes: acc.fraisAnnexes + r.fraisAnnexes,
+    benefice: acc.benefice + r.benefice
+  }), { ventes:0, ordersCount:0, ca:0, pub:0, coutProduit:0, fraisAnnexes:0, benefice:0 });
+
+  const marge = totals.ca > 0 ? (totals.benefice / totals.ca) * 100 : 0;
+  const fmtDate = (d) => new Date(d+'T00:00:00').toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'short' });
+
+  document.getElementById('view').innerHTML = `
+    ${periodSelectorHTML()}
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
+      ${kpi({ label:'CA total ' + ps, value: fmtMoney(totals.ca, operatingCurrency()), sub:`${totals.ordersCount} commandes · ${totals.ventes} unités`, tone:'violet' })}
+      ${kpi({ label:'Budget pub', value: fmtMoney(totals.pub, operatingCurrency()), sub:`ROAS ${(totals.pub>0?totals.ca/totals.pub:0).toFixed(2)}`, tone:'amber' })}
+      ${kpi({ label:'Coût produit (livraison incl.)', value: fmtMoney(totals.coutProduit, operatingCurrency()), sub:`+ frais ${fmtMoney(totals.fraisAnnexes, operatingCurrency())}` })}
+      ${kpi({ label:'Bénéfice net ' + ps, value: fmtMoney(totals.benefice, operatingCurrency()), sub:`marge ${pct(marge)}`, tone: totals.benefice>=0?'mint':'rose' })}
+    </div>
+
+    <div class="card mb-3" style="padding:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <span class="label" style="margin-bottom:0">Filtre produit</span>
+      <select class="select" style="max-width:280px" onchange="setProfitFilter(this.value)">
+        <option value="">Tous les produits</option>
+        ${state.products.map(p => `<option value="${p.id}" ${filterId===p.id?'selected':''}>${p.name}</option>`).join('')}
+      </select>
+      <button class="btn btn-ghost" style="margin-left:auto" onclick="exportProfitCSV()">↓ Export CSV</button>
+    </div>
+
+    <div class="card" style="overflow:hidden">
+      <div style="overflow-x:auto">
+        <table class="table" style="width:100%; min-width:760px">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th style="text-align:right">Ventes</th>
+              <th style="text-align:right">CA</th>
+              <th style="text-align:right">Budget pub</th>
+              <th style="text-align:right">Coût produit<br><span style="font-weight:400; font-size:10px; color:#5a6072; text-transform:none; letter-spacing:0">(livraison fournisseur incl.)</span></th>
+              <th style="text-align:right">Frais annexes<br><span style="font-weight:400; font-size:10px; color:#5a6072; text-transform:none; letter-spacing:0">(COD · plateforme · liv. locale)</span></th>
+              <th style="text-align:right">Bénéfice</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length === 0 ? `<tr><td colspan="7" style="text-align:center; padding:32px; color:#8f95a6">Aucune activité sur cette période</td></tr>` :
+              rows.slice().reverse().map(r => `
+                <tr>
+                  <td style="font-weight:500">${fmtDate(r.date)}</td>
+                  <td style="text-align:right">${fmtNum(r.ventes)}</td>
+                  <td style="text-align:right; font-weight:600; color:#e8ebf2">${fmtMoney(r.ca, operatingCurrency())}</td>
+                  <td style="text-align:right; color:#f5c47a">${fmtMoney(r.pub, operatingCurrency())}</td>
+                  <td style="text-align:right">${fmtMoney(r.coutProduit, operatingCurrency())}</td>
+                  <td style="text-align:right; color:#8f95a6">${fmtMoney(r.fraisAnnexes, operatingCurrency())}</td>
+                  <td style="text-align:right; font-weight:700" class="${r.benefice>=0?'stat-up':'stat-down'}">${fmtMoney(r.benefice, operatingCurrency())}</td>
+                </tr>`).join('')}
+          </tbody>
+          ${rows.length > 0 ? `
+            <tfoot>
+              <tr style="background:#13151b; font-weight:700; border-top:2px solid #21242d">
+                <td style="padding:14px 12px">TOTAL</td>
+                <td style="text-align:right; padding:14px 12px">${fmtNum(totals.ventes)}</td>
+                <td style="text-align:right; padding:14px 12px; color:#9c85ff">${fmtMoney(totals.ca, operatingCurrency())}</td>
+                <td style="text-align:right; padding:14px 12px; color:#f5c47a">${fmtMoney(totals.pub, operatingCurrency())}</td>
+                <td style="text-align:right; padding:14px 12px">${fmtMoney(totals.coutProduit, operatingCurrency())}</td>
+                <td style="text-align:right; padding:14px 12px; color:#8f95a6">${fmtMoney(totals.fraisAnnexes, operatingCurrency())}</td>
+                <td style="text-align:right; padding:14px 12px" class="${totals.benefice>=0?'stat-up':'stat-down'}">${fmtMoney(totals.benefice, operatingCurrency())}</td>
+              </tr>
+            </tfoot>
+          ` : ''}
+        </table>
+      </div>
+    </div>
+
+    <div class="text-[12px] text-ink-400 mt-3" style="line-height:1.5">
+      <strong style="color:#c7cbd6">Formules</strong> · CA = unités livrées × prix de vente.
+      Coût produit = unités livrées × (coût fournisseur + livraison fournisseur), converti dans la devise d'opération.
+      Frais annexes = frais COD (${state.settings.codFeePercent||0}%) + frais plateforme (${state.settings.platformFeePercent||0}%) + livraison locale par pays + frais logistique par commande.
+      Bénéfice net = CA − coût produit − budget pub − frais annexes. Tout est recalculé en temps réel à partir des commandes, ads et paramètres.
+    </div>
+  `;
+});
+
+// CSV export of the profit table
+function exportProfitCSV() {
+  const range = periodRange();
+  const dates = datesInRange(range.start, range.end);
+  const filterId = _profitProductFilter;
+  const products = filterId ? state.products.filter(p => p.id === filterId) : state.products;
+  const rows = [['date','ventes (unités)','CA','budget pub','coût produit (liv. fournisseur incl.)','frais annexes','bénéfice net']];
+  dates.forEach(d => {
+    const stats = products.reduce((acc, p) => {
+      const pr = profitOnDate(p.id, d);
+      const deliveredOrders = state.orders.filter(o => o.productId === p.id && o.date === d && o.status === 'delivered');
+      const ventes = deliveredOrders.reduce((s,o) => s + (Number(o.quantity)||1), 0);
+      acc.ventes += ventes;
+      acc.ca += pr.revenue;
+      acc.pub += pr.adSpend;
+      acc.coutProduit += pr.productCost;
+      acc.fraisAnnexes += pr.codFees + pr.platformFees + pr.shippingCost + pr.logisticsFees;
+      acc.benefice += pr.netProfit;
+      return acc;
+    }, { ventes:0, ca:0, pub:0, coutProduit:0, fraisAnnexes:0, benefice:0 });
+    if (stats.ventes > 0 || stats.ca > 0 || stats.pub > 0 || stats.coutProduit > 0) {
+      rows.push([d, stats.ventes, stats.ca.toFixed(2), stats.pub.toFixed(2), stats.coutProduit.toFixed(2), stats.fraisAnnexes.toFixed(2), stats.benefice.toFixed(2)]);
+    }
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8;' });
+  const label = filterId ? (productOf(filterId)?.name||'produit') : 'tous';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `cod-crm-ca-benefice-${label}-${range.start}-${range.end}.csv`; a.click();
+  toast('Export CSV téléchargé', 'success');
+}
+
+/* === Settings === */
+on('/settings', () => {
+  setTitle('Paramètres', 'Frais, devises, alertes');
+  const s = state.settings;
+  document.getElementById('view').innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+      <div class="card p-5">
+        <div class="font-semibold mb-3">Devise d'opération</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <span class="label">Devise principale</span>
+            <select id="s-op" class="select">
+              <option value="EUR" ${s.operatingCurrency==='EUR'?'selected':''}>EUR</option>
+              <option value="USD" ${s.operatingCurrency==='USD'?'selected':''}>USD</option>
+            </select>
+          </div>
+          <div>
+            <span class="label">1 USD = ? EUR</span>
+            <input id="s-rate-usd" type="number" step="0.0001" class="input" value="${s.rates.USD ?? 0.92}" />
+          </div>
+        </div>
+        <div class="text-[12px] text-ink-400 mt-2">Conversion automatique des coûts fournisseur saisis dans une autre devise.</div>
+      </div>
+
+      <div class="card p-5">
+        <div class="font-semibold mb-3">Frais & objectifs</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><span class="label">Frais COD (%)</span><input id="s-cod" type="number" class="input" value="${s.codFeePercent}" /></div>
+          <div><span class="label">Frais plateforme (%)</span><input id="s-plat" type="number" class="input" value="${s.platformFeePercent}" /></div>
+          <div><span class="label">Frais logistiques par commande</span><input id="s-log" type="number" class="input" value="${s.logisticsFeePerOrder}" /></div>
+          <div><span class="label">Seuil de stock faible</span><input id="s-low" type="number" class="input" value="${s.lowStockThreshold}" /></div>
+          <div><span class="label">Objectif ROAS minimum</span><input id="s-roas" type="number" step="0.01" class="input" value="${s.roasTarget}" /></div>
+        </div>
+        <button class="btn btn-primary mt-4" id="save-settings">Enregistrer</button>
+      </div>
+
+      <div class="card p-5 lg:col-span-2">
+        <div class="font-semibold mb-3 flex items-center gap-2">
+          <span style="font-size:18px">☁️</span> Synchronisation cloud (Supabase) — multi-appareils
+        </div>
+        <div class="text-[12.5px] text-ink-300 mb-3">
+          Synchronise tes données entre tous tes appareils (mobile, desktop, tablette).
+          Crée un projet gratuit sur <a href="https://supabase.com" target="_blank" rel="noopener" style="color:#9c85ff; text-decoration:underline">supabase.com</a>,
+          exécute le SQL ci-dessous une fois (SQL Editor), puis colle l'URL et la clé anon (Project Settings → API).
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div><span class="label">URL du projet</span><input id="s-supa-url" class="input" placeholder="https://xxxxx.supabase.co" value="${(cloud.config.url||'').replace(/"/g,'&quot;')}"></div>
+          <div><span class="label">Clé anon (publishable)</span><input id="s-supa-key" class="input" placeholder="eyJhbGciOi..." value="${(cloud.config.anonKey||'').replace(/"/g,'&quot;')}"></div>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-3">
+          <button class="btn btn-primary" id="save-supa">${cloud.client?'Mettre à jour':'Enregistrer & connecter'}</button>
+          ${cloud.config.url ? '<button class="btn btn-danger" id="clear-supa">Déconnecter & oublier</button>' : ''}
+        </div>
+
+        ${cloud.client ? `
+          <div style="border-top:1px solid #191c23; margin:18px 0;"></div>
+          <div class="font-semibold mb-2">Compte utilisateur</div>
+          ${cloud.user ? `
+            <div class="card-soft p-3 flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <div class="text-sm">Connecté · <span class="font-semibold">${cloud.user.email}</span></div>
+                <div class="text-[11px] text-ink-400">Dernière sync : ${cloud.lastSync ? new Date(cloud.lastSync).toLocaleString('fr-FR') : '—'}</div>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-ghost" id="cloud-pull">↓ Tirer du cloud</button>
+                <button class="btn btn-ghost" id="cloud-push">↑ Pousser au cloud</button>
+                <button class="btn btn-danger" id="cloud-out">Déconnexion</button>
+              </div>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div><span class="label">Email</span><input id="auth-email" class="input" type="email" placeholder="vous@exemple.com" autocomplete="email"></div>
+              <div><span class="label">Mot de passe (min 6 caractères)</span><input id="auth-pwd" class="input" type="password" autocomplete="current-password"></div>
+            </div>
+            <div class="flex gap-2 mt-3 flex-wrap">
+              <button class="btn btn-primary" id="auth-signin">Se connecter</button>
+              <button class="btn btn-ghost" id="auth-signup">Créer un compte</button>
+            </div>
+            <div class="text-[11px] text-ink-400 mt-2">Si tu te connectes pour la 1re fois sur cet appareil, tes données locales seront fusionnées avec celles du cloud (ou poussées si le cloud est vide).</div>
+          `}
+        ` : ''}
+
+        <details style="margin-top:16px;">
+          <summary class="text-[12px] text-ink-300" style="cursor:pointer; user-select:none;">📋 SQL à exécuter une fois dans Supabase (SQL Editor)</summary>
+          <pre class="card-soft" style="padding:12px; margin-top:8px; font-size:11px; overflow:auto; white-space:pre-wrap; color:#c7cbd6;">create table if not exists user_data (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  state jsonb,
+  updated_at timestamptz default now()
+);
+alter table user_data enable row level security;
+create policy "read own" on user_data for select using (auth.uid() = user_id);
+create policy "insert own" on user_data for insert with check (auth.uid() = user_id);
+create policy "update own" on user_data for update using (auth.uid() = user_id);</pre>
+        </details>
+      </div>
+
+      <div class="card p-5 lg:col-span-2">
+        <div class="font-semibold mb-3">Données</div>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn btn-ghost" onclick="exportCSV()">Export CSV (commandes)</button>
+          <button class="btn btn-ghost" onclick="exportJSON()">Export sauvegarde JSON</button>
+          <label class="btn btn-ghost cursor-pointer">
+            Importer JSON
+            <input type="file" accept="application/json" class="hidden" onchange="importJSON(event)">
+          </label>
+          <button class="btn btn-danger" onclick="resetAll()">Réinitialiser toutes les données</button>
+        </div>
+        <div class="text-[12px] text-ink-400 mt-2">${cloud.user?'Données synchronisées avec le cloud Supabase et sauvegardées localement.':'Données stockées localement dans ce navigateur (localStorage). Active la sync cloud ci-dessus pour utiliser sur plusieurs appareils.'}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('save-settings').onclick = () => {
+    state.settings.operatingCurrency = document.getElementById('s-op').value;
+    state.settings.rates.USD = Number(document.getElementById('s-rate-usd').value)||0.92;
+    state.settings.codFeePercent = Number(document.getElementById('s-cod').value)||0;
+    state.settings.platformFeePercent = Number(document.getElementById('s-plat').value)||0;
+    state.settings.logisticsFeePerOrder = Number(document.getElementById('s-log').value)||0;
+    state.settings.lowStockThreshold = Number(document.getElementById('s-low').value)||0;
+    state.settings.roasTarget = Number(document.getElementById('s-roas').value)||2;
+    saveState(); toast('Paramètres enregistrés', 'success'); render();
+  };
+
+  // Cloud config save
+  document.getElementById('save-supa').onclick = () => {
+    const url = document.getElementById('s-supa-url').value.trim().replace(/\/$/, '');
+    const key = document.getElementById('s-supa-key').value.trim();
+    if (!url || !key) { toast('URL et clé requises', 'danger'); return; }
+    cloud.config.url = url; cloud.config.anonKey = key;
+    saveCloudConfig();
+    cloud.client = null; cloud.user = null;
+    initCloud();
+    toast('Configuration enregistrée', 'success');
+    setTimeout(render, 300);
+  };
+  const clrBtn = document.getElementById('clear-supa');
+  if (clrBtn) clrBtn.onclick = async () => {
+    if (!confirm('Déconnecter et effacer la config cloud ? Tes données locales seront conservées.')) return;
+    if (cloud.client && cloud.user) { try { await cloud.client.auth.signOut(); } catch(e){} }
+    cloud.config = { url:'', anonKey:'' }; cloud.client = null; cloud.user = null;
+    saveCloudConfig(); updateCloudUI(); render();
+  };
+  const sib = document.getElementById('auth-signin'); if (sib) sib.onclick = async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const pwd = document.getElementById('auth-pwd').value;
+    if (!email || !pwd) { toast('Email et mot de passe requis', 'danger'); return; }
+    const res = await cloudSignIn(email, pwd);
+    if (res.error) { toast(res.error, 'danger'); } else { toast('Connexion réussie', 'success'); setTimeout(render, 200); }
+  };
+  const sub = document.getElementById('auth-signup'); if (sub) sub.onclick = async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const pwd = document.getElementById('auth-pwd').value;
+    if (!email || !pwd) { toast('Email et mot de passe requis', 'danger'); return; }
+    if (pwd.length < 6) { toast('Mot de passe trop court (min 6)', 'danger'); return; }
+    const res = await cloudSignUp(email, pwd);
+    if (res.error) { toast(res.error, 'danger'); }
+    else { toast('Compte créé. Vérifie ton email si confirmation requise.', 'success'); setTimeout(render, 200); }
+  };
+  const oub = document.getElementById('cloud-out'); if (oub) oub.onclick = async () => { await cloudSignOut(); render(); };
+  const pul = document.getElementById('cloud-pull'); if (pul) pul.onclick = () => loadFromCloud();
+  const pus = document.getElementById('cloud-push'); if (pus) pus.onclick = () => pushToCloud(false);
+});
+
+/* ---------- Modals: Product ---------- */
+// Resize image to max 480px and return base64 dataURL
+function resizeImage(file, maxSize=480) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const w = Math.round(img.width * ratio), h = Math.round(img.height * ratio);
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = reject; img.src = reader.result;
+    };
+    reader.onerror = reject; reader.readAsDataURL(file);
+  });
+}
+// runtime store for product modal in-progress data
+let _prodDraft = { image:null, customFields:[] };
+function renderCustomFieldRows() {
+  const host = document.getElementById('custom-fields-list'); if (!host) return;
+  host.innerHTML = _prodDraft.customFields.map((cf, i) => `
+    <div class="flex gap-2 items-center">
+      <input class="input" data-cf-key="${i}" placeholder="Champ" value="${(cf.key||'').replace(/"/g,'&quot;')}">
+      <input class="input" data-cf-val="${i}" placeholder="Valeur" value="${(cf.value||'').replace(/"/g,'&quot;')}">
+      <button type="button" class="btn btn-danger py-2 px-3" data-cf-remove="${i}">✕</button>
+    </div>`).join('');
+  host.querySelectorAll('[data-cf-key]').forEach(el => el.oninput = e => { _prodDraft.customFields[+el.dataset.cfKey].key = e.target.value; });
+  host.querySelectorAll('[data-cf-val]').forEach(el => el.oninput = e => { _prodDraft.customFields[+el.dataset.cfVal].value = e.target.value; });
+  host.querySelectorAll('[data-cf-remove]').forEach(el => el.onclick = () => { _prodDraft.customFields.splice(+el.dataset.cfRemove, 1); renderCustomFieldRows(); });
+}
+function renderImagePreview() {
+  const host = document.getElementById('img-preview'); if (!host) return;
+  host.innerHTML = _prodDraft.image
+    ? `<img src="${_prodDraft.image}" class="w-full h-full object-cover">`
+    : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-ink-400"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>`;
+  const rm = document.getElementById('img-remove'); if (rm) rm.classList.toggle('hidden', !_prodDraft.image);
+}
+function openProductModal(editId) {
+  const p = editId ? productOf(editId) : { offerType:'standard', supplierCurrency:'EUR' };
+  _prodDraft = { image: p.image || null, customFields: Array.isArray(p.customFields) ? p.customFields.map(x=>({...x})) : [] };
+  modal((editId?'Modifier le produit':'Ajouter un produit'),
+    `<form id="prod-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- Identité -->
+      <div class="sm:col-span-2 flex items-start gap-3">
+        <div id="img-preview" class="w-20 h-20 flex-shrink-0 rounded-xl bg-ink-800 border border-ink-700 flex items-center justify-center overflow-hidden"></div>
+        <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div class="sm:col-span-2"><span class="label">Nom du produit</span><input class="input" name="name" required value="${(p.name||'').replace(/"/g,'&quot;')}" placeholder="ex : Lampe LED design"></div>
+          <div class="flex items-end gap-2">
+            <label class="btn btn-ghost cursor-pointer flex-1 justify-center relative" style="overflow:hidden">
+              <input type="file" accept="image/*" id="img-input" style="position:absolute; inset:0; opacity:0; cursor:pointer; font-size:0; -webkit-appearance:none;">
+              <span style="pointer-events:none">📷 Image</span>
+            </label>
+            <button type="button" id="img-remove" class="btn btn-danger ${p.image?'':'hidden'}">Retirer</button>
+          </div>
+          <div>
+            <span class="label">Couleur d'accent</span>
+            <div class="flex gap-2">
+              <input type="color" class="input p-1 w-14 h-[42px] cursor-pointer" name="color" value="${p.color || '#7c5cff'}">
+              <input class="input flex-1" id="color-text" value="${p.color || '#7c5cff'}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div><span class="label">SKU</span><input class="input" name="sku" value="${(p.sku||'').replace(/"/g,'&quot;')}" placeholder="ex : LAMP-001"></div>
+      <div><span class="label">Tags (séparés par virgule)</span><input class="input" name="tags" value="${(p.tags||[]).join(', ').replace(/"/g,'&quot;')}" placeholder="hiver, top vente"></div>
+
+      <div><span class="label">Prix de vente (${operatingCurrency()})</span><input class="input" name="sellPrice" type="number" step="0.01" required value="${p.sellPrice ?? ''}"></div>
+      <div><span class="label">Stock initial</span><input class="input" name="initialStock" type="number" required value="${p.initialStock ?? 0}"></div>
+
+      <div><span class="label">Coût fournisseur unitaire</span><input class="input" name="supplierCost" type="number" step="0.01" required value="${p.supplierCost ?? ''}"></div>
+      <div><span class="label">Frais livraison fournisseur</span><input class="input" name="supplierShipping" type="number" step="0.01" value="${p.supplierShipping ?? 0}"></div>
+      <div>
+        <span class="label">Devise fournisseur</span>
+        <select class="select" name="supplierCurrency">
+          <option value="EUR" ${p.supplierCurrency==='EUR'?'selected':''}>EUR</option>
+          <option value="USD" ${p.supplierCurrency==='USD'?'selected':''}>USD</option>
+        </select>
+      </div>
+      <div class="flex items-end text-[12px] text-ink-300">Conversion automatique selon le taux dans Paramètres.</div>
+
+      <div class="sm:col-span-2">
+        <span class="label">Offre marketing</span>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          ${['standard','1+1','2+1','custom'].map(t => `
+            <label class="card-soft p-3 flex items-center gap-2 cursor-pointer ${p.offerType===t?'ring-2 ring-brand-500':''}">
+              <input type="radio" name="offerType" value="${t}" ${p.offerType===t?'checked':''} class="accent-brand-500">
+              <span class="text-sm">${t==='standard'?'1 acheté = 1 livré':t==='1+1'?'1 acheté = 1 offert':t==='2+1'?'2 achetés = 1 offert':'personnalisé'}</span>
+            </label>`).join('')}
+        </div>
+        <div id="custom-offer" class="grid grid-cols-2 gap-2 mt-2 ${p.offerType==='custom'?'':'hidden'}">
+          <div><span class="label">Achetés</span><input class="input" name="customBuy" type="number" value="${p.customBuy ?? 1}"></div>
+          <div><span class="label">Offerts</span><input class="input" name="customGet" type="number" value="${p.customGet ?? 1}"></div>
+        </div>
+        <div class="text-[12px] text-ink-300 mt-2">Le stock sera décrémenté automatiquement selon cette offre à chaque commande LIVRÉE.</div>
+      </div>
+
+      <div class="sm:col-span-2">
+        <div class="flex items-center justify-between mb-2">
+          <span class="label" style="margin-bottom:0">Champs personnalisés</span>
+          <button type="button" class="btn btn-ghost text-[12px] py-1 px-2" id="add-cf">+ Ajouter un champ</button>
+        </div>
+        <div id="custom-fields-list" class="space-y-2"></div>
+        <div class="text-[12px] text-ink-400 mt-1">Exemple : fournisseur, lien produit, code-barres, contact…</div>
+      </div>
+
+      <div class="sm:col-span-2"><span class="label">Notes</span><textarea class="input" name="notes" rows="2" placeholder="Optionnel">${(p.notes||'').replace(/</g,'&lt;')}</textarea></div>
+    </form>`,
+    { footer: `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+               <button class="btn btn-primary" id="prod-save">${editId?'Enregistrer':'Créer le produit'}</button>` }
+  );
+  renderImagePreview();
+  renderCustomFieldRows();
+  // dynamic
+  document.querySelectorAll('[name="offerType"]').forEach(r => r.onchange = () => {
+    document.getElementById('custom-offer').classList.toggle('hidden', r.value!=='custom' || !r.checked);
+  });
+  // image upload
+  document.getElementById('img-input').onchange = async (ev) => {
+    const f = ev.target.files[0]; if (!f) return;
+    try { _prodDraft.image = await resizeImage(f); renderImagePreview(); }
+    catch(e){ toast('Erreur de lecture image', 'danger'); }
+  };
+  document.getElementById('img-remove').onclick = () => { _prodDraft.image = null; renderImagePreview(); };
+  // color sync
+  const cInput = document.querySelector('[name="color"]'); const cText = document.getElementById('color-text');
+  cInput.oninput = () => { cText.value = cInput.value; };
+  cText.oninput = () => { if (/^#[0-9a-f]{6}$/i.test(cText.value)) cInput.value = cText.value; };
+  // custom fields
+  document.getElementById('add-cf').onclick = () => { _prodDraft.customFields.push({ key:'', value:'' }); renderCustomFieldRows(); };
+  // save
+  document.getElementById('prod-save').onclick = () => {
+    const f = document.getElementById('prod-form');
+    const fd = new FormData(f);
+    const obj = Object.fromEntries(fd.entries());
+    if (!obj.name || !obj.sellPrice || !obj.supplierCost) { toast('Champs requis manquants', 'danger'); return; }
+    const numFields = ['sellPrice','supplierCost','supplierShipping','initialStock','customBuy','customGet'];
+    numFields.forEach(k => obj[k] = obj[k] === undefined || obj[k] === '' ? 0 : Number(obj[k]));
+    obj.tags = String(obj.tags||'').split(',').map(s => s.trim()).filter(Boolean);
+    obj.image = _prodDraft.image;
+    obj.customFields = _prodDraft.customFields.filter(cf => cf.key || cf.value);
+    if (editId) {
+      const i = state.products.findIndex(x => x.id===editId);
+      state.products[i] = { ...state.products[i], ...obj };
+    } else {
+      state.products.push({ id: uid(), createdAt: new Date().toISOString(), ...obj });
+    }
+    saveState(); closeModal(); toast('Produit enregistré', 'success'); render();
+  };
+}
+function deleteProduct(id) {
+  if (!confirm('Supprimer ce produit et toutes ses commandes/pubs associées ?')) return;
+  state.products = state.products.filter(p => p.id !== id);
+  state.orders = state.orders.filter(o => o.productId !== id);
+  state.ads = state.ads.filter(a => a.productId !== id);
+  saveState(); toast('Produit supprimé', 'success'); navigate('/products');
+}
+
+/* ---------- Modals: Order ---------- */
+function openOrderModal(editId, defaultProductId) {
+  if (state.products.length === 0) { toast('Créez d\'abord un produit', 'danger'); return; }
+  const o = editId ? state.orders.find(x => x.id===editId) : { date: today(), status:'pending', quantity:1, productId: defaultProductId||state.products[0].id, countryId: state.countries[0]?.id || '' };
+  modal((editId?'Modifier la commande':'Nouvelle commande'),
+    `<form id="ord-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div><span class="label">Date</span><input class="input" name="date" type="date" required value="${o.date}"></div>
+      <div>
+        <span class="label">Produit</span>
+        <select class="select" name="productId" required>${state.products.map(p => `<option value="${p.id}" ${o.productId===p.id?'selected':''}>${p.name}</option>`).join('')}</select>
+      </div>
+      <div>
+        <span class="label">Pays</span>
+        <select class="select" name="countryId">${state.countries.map(c => `<option value="${c.id}" ${o.countryId===c.id?'selected':''}>${c.flag||''} ${c.name}</option>`).join('') || '<option value="">— aucun —</option>'}</select>
+      </div>
+      <div><span class="label">Quantité</span><input class="input" type="number" name="quantity" min="1" value="${o.quantity||1}"></div>
+      <div class="sm:col-span-2">
+        <span class="label">Statut</span>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          ${[['pending','en attente'],['confirmed','confirmée'],['shipped','expédiée'],['delivered','livrée'],['cancelled','annulée']].map(([v,l]) => `
+            <label class="card-soft p-2 text-center cursor-pointer text-sm ${o.status===v?'ring-2 ring-brand-500':''}">
+              <input type="radio" name="status" value="${v}" ${o.status===v?'checked':''} class="hidden">${l}
+            </label>`).join('')}
+        </div>
+        <div class="text-[12px] text-ink-300 mt-2">Le stock est décrémenté automatiquement uniquement quand le statut est "livrée".</div>
+      </div>
+      <div class="sm:col-span-2"><span class="label">Notes</span><input class="input" name="notes" value="${o.notes||''}"></div>
+    </form>`,
+    { footer: `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+               <button class="btn btn-primary" id="ord-save">${editId?'Enregistrer':'Créer la commande'}</button>` });
+  document.getElementById('ord-save').onclick = () => {
+    const fd = new FormData(document.getElementById('ord-form'));
+    const obj = Object.fromEntries(fd.entries());
+    obj.quantity = Number(obj.quantity)||1;
+    if (editId) {
+      const i = state.orders.findIndex(x => x.id===editId);
+      state.orders[i] = { ...state.orders[i], ...obj };
+    } else {
+      state.orders.push({ id: uid(), ...obj });
+    }
+    saveState(); closeModal(); toast('Commande enregistrée', 'success'); render();
+  };
+}
+function deleteOrder(id) {
+  if (!confirm('Supprimer cette commande ?')) return;
+  state.orders = state.orders.filter(o => o.id !== id);
+  saveState(); toast('Commande supprimée', 'success'); render();
+}
+
+/* ---------- Modals: Ad ---------- */
+function openAdModal(editId, defaultProductId) {
+  if (state.products.length === 0) { toast('Créez d\'abord un produit', 'danger'); return; }
+  const a = editId ? state.ads.find(x => x.id===editId) : { date: today(), platform:'Meta', productId: defaultProductId||state.products[0].id, countryId: state.countries[0]?.id || '', budget: 0 };
+  modal((editId?'Modifier le budget pub':'Saisir un budget publicitaire'),
+    `<form id="ad-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div><span class="label">Date</span><input class="input" name="date" type="date" required value="${a.date}"></div>
+      <div>
+        <span class="label">Produit</span>
+        <select class="select" name="productId" required>${state.products.map(p => `<option value="${p.id}" ${a.productId===p.id?'selected':''}>${p.name}</option>`).join('')}</select>
+      </div>
+      <div>
+        <span class="label">Plateforme</span>
+        <select class="select" name="platform">${['Meta','TikTok','Google','Snapchat','Autre'].map(x => `<option value="${x}" ${a.platform===x?'selected':''}>${x}</option>`).join('')}</select>
+      </div>
+      <div>
+        <span class="label">Pays ciblé</span>
+        <select class="select" name="countryId">${state.countries.map(c => `<option value="${c.id}" ${a.countryId===c.id?'selected':''}>${c.flag||''} ${c.name}</option>`).join('') || '<option value="">— aucun —</option>'}</select>
+      </div>
+      <div class="sm:col-span-2"><span class="label">Budget (${operatingCurrency()})</span><input class="input" name="budget" type="number" step="0.01" required value="${a.budget||0}"></div>
+    </form>`,
+    { footer: `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+               <button class="btn btn-primary" id="ad-save">${editId?'Enregistrer':'Ajouter'}</button>` });
+  document.getElementById('ad-save').onclick = () => {
+    const fd = new FormData(document.getElementById('ad-form'));
+    const obj = Object.fromEntries(fd.entries());
+    obj.budget = Number(obj.budget)||0;
+    if (editId) {
+      const i = state.ads.findIndex(x => x.id===editId);
+      state.ads[i] = { ...state.ads[i], ...obj };
+    } else {
+      state.ads.push({ id: uid(), ...obj });
+    }
+    saveState(); closeModal(); toast('Budget enregistré', 'success'); render();
+  };
+}
+function deleteAd(id) {
+  if (!confirm('Supprimer cette entrée publicitaire ?')) return;
+  state.ads = state.ads.filter(a => a.id !== id);
+  saveState(); toast('Entrée supprimée', 'success'); render();
+}
+
+/* ---------- Modals: Country ---------- */
+function openCountryModal(editId) {
+  const c = editId ? countryOf(editId) : { currency:'EUR', flag:'🇫🇷', localShippingCost:0 };
+  modal((editId?'Modifier le pays':'Ajouter un pays'),
+    `<form id="ctr-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="sm:col-span-2"><span class="label">Nom du pays</span><input class="input" name="name" required value="${c.name||''}" placeholder="ex : France"></div>
+      <div><span class="label">Drapeau (emoji)</span><input class="input" name="flag" value="${c.flag||''}" placeholder="🇫🇷"></div>
+      <div>
+        <span class="label">Devise locale</span>
+        <select class="select" name="currency">${['EUR','USD','GBP','CHF','MAD','TND','DZD','EGP','TRY'].map(x => `<option value="${x}" ${c.currency===x?'selected':''}>${x}</option>`).join('')}</select>
+      </div>
+      <div class="sm:col-span-2"><span class="label">Coût livraison local (${operatingCurrency()} / commande)</span><input class="input" name="localShippingCost" type="number" step="0.01" value="${c.localShippingCost||0}"></div>
+    </form>`,
+    { footer: `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+               <button class="btn btn-primary" id="ctr-save">${editId?'Enregistrer':'Ajouter'}</button>` });
+  document.getElementById('ctr-save').onclick = () => {
+    const fd = new FormData(document.getElementById('ctr-form'));
+    const obj = Object.fromEntries(fd.entries());
+    obj.localShippingCost = Number(obj.localShippingCost)||0;
+    if (editId) {
+      const i = state.countries.findIndex(x => x.id===editId);
+      state.countries[i] = { ...state.countries[i], ...obj };
+    } else {
+      state.countries.push({ id: uid(), ...obj });
+    }
+    saveState(); closeModal(); toast('Pays enregistré', 'success'); render();
+  };
+}
+function deleteCountry(id) {
+  if (!confirm('Supprimer ce pays ? Les commandes / pubs associées ne seront pas supprimées.')) return;
+  state.countries = state.countries.filter(c => c.id !== id);
+  saveState(); toast('Pays supprimé', 'success'); render();
+}
+
+/* ---------- Export / Import / Reset ---------- */
+function exportCSV() {
+  const rows = [['date','produit','sku','pays','quantité','prix','statut','offre','unitsParLivraison']];
+  state.orders.forEach(o => {
+    const p = productOf(o.productId); const c = countryOf(o.countryId);
+    rows.push([o.date, p?.name||'', p?.sku||'', c?.name||'', o.quantity||1, p?.sellPrice||0, o.status, p?.offerType||'', p?unitsPerOrder(p):1]);
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `cod-crm-commandes-${today()}.csv`; a.click();
+}
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `cod-crm-backup-${today()}.json`; a.click();
+}
+function importJSON(ev) {
+  const file = ev.target.files[0]; if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const data = JSON.parse(fr.result);
+      if (!data || typeof data !== 'object') throw new Error('Invalid');
+      if (!confirm('Remplacer toutes les données par celles du fichier ?')) return;
+      state = { ...DEFAULT_STATE(), ...data, settings: { ...DEFAULT_STATE().settings, ...(data.settings||{}) } };
+      saveState(); toast('Import réussi', 'success'); render();
+    } catch (e) { toast('Fichier invalide', 'danger'); }
+  };
+  fr.readAsText(file);
+}
+function resetAll() {
+  if (!confirm('Réinitialiser toutes les données ? Cette action est irréversible.')) return;
+  state = DEFAULT_STATE(); saveState(); toast('Données réinitialisées', 'success'); navigate('/');
+}
+
+/* ---------- Safari / robustness safety nets ---------- */
+// Prevent ANY form submission from reloading the page (Safari is strict about this)
+document.addEventListener('submit', function(e){ e.preventDefault(); return false; }, true);
+// Stub Chart.js if it failed to load (CDN blocked, offline, etc.)
+if (typeof Chart === 'undefined') {
+  console.warn('[CRM] Chart.js indisponible — graphiques désactivés');
+  window.Chart = function() { this.destroy = function(){}; return this; };
+}
+
+/* ---------- Boot ---------- */
+try { render(); }
+catch(e) {
+  console.error('[CRM] render error', e);
+  document.getElementById('view').innerHTML = '<div class="card p-6 text-rose-500">Erreur de rendu : '+e.message+'</div>';
+}
+try { initCloud(); } catch(e) { console.warn('initCloud', e); }
+</script>
+
+</body>
+</html>
